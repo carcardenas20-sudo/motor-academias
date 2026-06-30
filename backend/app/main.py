@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from app.database import get_pool, close_pool
 from app.auth import router as auth_router
 from app.academias import router as academias_router
+from app.config import settings
 
 
 @asynccontextmanager
@@ -15,9 +16,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Motor Academias API", version="0.1.0", lifespan=lifespan)
 
+origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
