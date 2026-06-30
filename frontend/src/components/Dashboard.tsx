@@ -807,12 +807,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="w-full max-w-6xl p-6 md:p-8 rounded-3xl border glassmorphism relative overflow-hidden"
-    >
+    <div className="w-full min-h-screen py-8 md:py-16 px-4 md:px-8 flex justify-center items-start bg-[#060908] overflow-y-auto">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="w-full max-w-6xl p-6 md:p-10 rounded-3xl border glassmorphism relative overflow-hidden shadow-2xl"
+      >
       {/* Orbes de luz decorativos flotantes de fondo */}
       <div 
         className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-[120px] transition-all duration-700 ease-out pointer-events-none animate-pulse-slow"
@@ -2480,6 +2481,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
       </AnimatePresence>
 
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

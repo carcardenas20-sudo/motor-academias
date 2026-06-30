@@ -64,7 +64,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 w-full"
+    <div className="min-h-screen w-full"
       style={{ backgroundColor: 'var(--color-fondo)' }}>
       <Routes>
         {/* Ruta principal (Solo para Super Admin, redirección para otros) */}
@@ -73,15 +73,17 @@ function AppContent() {
             user.rol === 'super_admin' ? (
               <Dashboard user={user} onLogout={handleLogout} />
             ) : (
-              <div className="text-center p-8 border rounded-2xl glassmorphism max-w-md"
-                style={{ borderColor: 'var(--color-linea)', backgroundColor: 'var(--color-superficie)' }}>
-                <h3 className="text-lg font-bold mb-2 text-[#E7EDEA]">Acceso correcto</h3>
-                <p className="text-xs text-[#73827C] mb-6">
-                  Has iniciado sesión. Por favor, ingresa al portal específico de tu academia para ver tus contenidos.
-                </p>
-                <button onClick={handleLogout} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-colors cursor-pointer">
-                  Cerrar Sesión
-                </button>
+              <div className="min-h-screen w-full flex items-center justify-center p-4">
+                <div className="text-center p-8 border rounded-2xl glassmorphism max-w-md"
+                  style={{ borderColor: 'var(--color-linea)', backgroundColor: 'var(--color-superficie)' }}>
+                  <h3 className="text-lg font-bold mb-2 text-[#E7EDEA]">Acceso correcto</h3>
+                  <p className="text-xs text-[#73827C] mb-6">
+                    Has iniciado sesión. Por favor, ingresa al portal específico de tu academia para ver tus contenidos.
+                  </p>
+                  <button onClick={handleLogout} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                    Cerrar Sesión
+                  </button>
+                </div>
               </div>
             )
           ) : (
