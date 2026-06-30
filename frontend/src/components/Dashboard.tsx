@@ -1,4 +1,21 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import {
+  Plus,
+  LogOut,
+  Users,
+  CheckCircle2,
+  Globe,
+  Database,
+  Loader2,
+  Mail,
+  Lock,
+  User,
+  ShieldCheck,
+  ChevronRight
+} from 'lucide-react';
+
 import type { TokenData } from '../services/auth';
 import {
   getAcademias,
@@ -20,13 +37,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   // Estados de Academias
   const [academias, setAcademias] = useState<Academia[]>([]);
   const [loadingAcademias, setLoadingAcademias] = useState(false);
-  const [errorAcademias, setErrorAcademias] = useState<string | null>(null);
   
   // Estado Selección
   const [selectedAcademia, setSelectedAcademia] = useState<Academia | null>(null);
   const [admins, setAdmins] = useState<AdminResponse[]>([]);
   const [loadingAdmins, setLoadingAdmins] = useState(false);
-  const [errorAdmins, setErrorAdmins] = useState<string | null>(null);
 
   // Estados Modales
   const [showCreateAcademiaModal, setShowCreateAcademiaModal] = useState(false);
@@ -39,14 +54,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [logoUrl, setLogoUrl] = useState('');
   const [colorAcento, setColorAcento] = useState('#3DD68C');
   const [creatingAcademia, setCreatingAcademia] = useState(false);
-  const [formErrorAcademia, setFormErrorAcademia] = useState<string | null>(null);
 
   // Formulario de Nuevo Admin
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminNombre, setAdminNombre] = useState('');
   const [creatingAdmin, setCreatingAdmin] = useState(false);
-  const [formErrorAdmin, setFormErrorAdmin] = useState<string | null>(null);
 
   // Cargar Academias si es super_admin
   useEffect(() => {
@@ -66,12 +79,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
   const loadAcademias = async () => {
     setLoadingAcademias(true);
-    setErrorAcademias(null);
     try {
       const data = await getAcademias(token);
       setAcademias(data);
     } catch (err: any) {
-      setErrorAcademias(err.message || 'Error al cargar las academias.');
+      toast.error(err.message || 'Error al cargar las academias.');
     } finally {
       setLoadingAcademias(false);
     }
@@ -79,12 +91,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
   const loadAdmins = async (academiaId: string) => {
     setLoadingAdmins(true);
-    setErrorAdmins(null);
     try {
       const data = await getAcademiaAdmins(token, academiaId);
       setAdmins(data);
     } catch (err: any) {
-      setErrorAdmins(err.message || 'Error al cargar los administradores.');
+      toast.error(err.message || 'Error al cargar los administradores.');
     } finally {
       setLoadingAdmins(false);
     }
@@ -93,12 +104,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const handleCreateAcademia = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre || !slug) {
-      setFormErrorAcademia('El nombre y el slug son campos requeridos.');
+      toast.error('El nombre y el slug son obligatorios.');
       return;
     }
 
     setCreatingAcademia(true);
-    setFormErrorAcademia(null);
     try {
       const nueva = await createAcademia(token, {
         nombre,
@@ -109,6 +119,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       });
       setAcademias((prev) => [nueva, ...prev]);
       setShowCreateAcademiaModal(false);
+      toast.success(`Academia "${nombre}" creada exitosamente.`);
+      
       // Reset campos
       setNombre('');
       setSlug('');
@@ -116,7 +128,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       setLogoUrl('');
       setColorAcento('#3DD68C');
     } catch (err: any) {
-      setFormErrorAcademia(err.message || 'Ocurrió un error al crear la academia.');
+      toast.error(err.message || 'Ocurrió un error al crear la academia.');
     } finally {
       setCreatingAcademia(false);
     }
@@ -126,12 +138,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     e.preventDefault();
     if (!selectedAcademia) return;
     if (!adminEmail || !adminPassword || !adminNombre) {
-      setFormErrorAdmin('Todos los campos son obligatorios.');
+      toast.error('Todos los campos son obligatorios.');
       return;
     }
 
     setCreatingAdmin(true);
-    setFormErrorAdmin(null);
     try {
       const nuevoAdmin = await createAcademiaAdmin(token, selectedAcademia.id, {
         email: adminEmail,
@@ -140,12 +151,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       });
       setAdmins((prev) => [nuevoAdmin, ...prev]);
       setShowCreateAdminModal(false);
+      toast.success(`Administrador "${adminNombre}" registrado con éxito.`);
+      
       // Reset campos
       setAdminEmail('');
       setAdminPassword('');
       setAdminNombre('');
     } catch (err: any) {
-      setFormErrorAdmin(err.message || 'Ocurrió un error al registrar el administrador.');
+      toast.error(err.message || 'Ocurrió un error al registrar el administrador.');
     } finally {
       setCreatingAdmin(false);
     }
@@ -165,169 +178,159 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   };
 
   return (
-    <div className="w-full max-w-6xl p-6 md:p-8 rounded-2xl border transition-all duration-300 shadow-2xl relative overflow-hidden"
-      style={{ 
-        backgroundColor: 'var(--color-superficie)', 
-        borderColor: 'var(--color-linea)',
-      }}>
-      
-      {/* Glow de fondo dinámico según selección */}
-      <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-10 pointer-events-none transition-all duration-500"
-        style={{ backgroundColor: selectedAcademia ? selectedAcademia.color_acento : 'var(--color-verde)' }} />
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="w-full max-w-6xl p-6 md:p-8 rounded-3xl border glassmorphism relative overflow-hidden"
+    >
+      {/* Orbes de luz decorativos flotantes de fondo */}
+      <div 
+        className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-[120px] transition-all duration-700 ease-out pointer-events-none animate-pulse-slow"
+        style={{ 
+          backgroundColor: selectedAcademia ? `${selectedAcademia.color_acento}1e` : 'var(--color-verde)1c',
+        }} 
+      />
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-[100px] opacity-10 pointer-events-none bg-blue-500/10" />
 
       <div className="relative z-10 flex flex-col gap-8">
         
-        {/* HEADER DEL DASHBOARD */}
+        {/* HEADER DE CONTROL */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b"
           style={{ borderColor: 'var(--color-linea)' }}>
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-verde)' }}>
-              {user.rol === 'super_admin' ? 'Administrador Global' : 'Panel de Control'}
-            </span>
-            <h1 className="text-3xl font-extrabold tracking-tight mt-1" style={{ color: 'var(--color-texto)' }}>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#3DD68C]">
+                {user.rol === 'super_admin' ? 'Administrador Global' : 'Panel de Control'}
+              </span>
+            </div>
+            <h1 className="text-3xl font-black tracking-tight mt-1 text-[#E7EDEA]">
               Motor Academias
             </h1>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>
+              <p className="text-sm font-semibold text-[#E7EDEA]">
                 {user.rol === 'super_admin' ? 'Carlos' : 'Usuario'}
               </p>
-              <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1 border"
-                style={{ 
-                  backgroundColor: 'rgba(61, 214, 140, 0.08)', 
-                  borderColor: 'rgba(61, 214, 140, 0.2)',
-                  color: 'var(--color-verde)'
-                }}>
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full mt-1 border bg-emerald-500/5 border-emerald-500/20 text-[#3DD68C]">
+                <ShieldCheck className="w-3.5 h-3.5" />
                 {user.rol}
               </span>
             </div>
             
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={onLogout}
-              className="p-2.5 rounded-xl border transition-all duration-200 cursor-pointer"
-              style={{
-                borderColor: 'var(--color-linea)',
-                backgroundColor: 'rgba(11, 15, 14, 0.4)',
-              }}
+              className="p-3 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 cursor-pointer"
               title="Cerrar Sesión"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-rojo)';
-                e.currentTarget.style.backgroundColor = 'rgba(255, 107, 107, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-linea)';
-                e.currentTarget.style.backgroundColor = 'rgba(11, 15, 14, 0.4)';
-              }}
             >
-              <svg className="w-5 h-5" style={{ color: 'var(--color-rojo)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
+              <LogOut className="w-4 h-4" />
+            </motion.button>
           </div>
         </div>
 
-        {/* CONTENIDO SUPER ADMIN */}
+        {/* CONTENIDO PRINCIPAL */}
         {user.rol === 'super_admin' ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* COLUMNA IZQUIERDA: LISTA DE ACADEMIAS (8 cols) */}
+            {/* COLUMNA IZQUIERDA: LISTA DE ACADEMIAS (7 cols) */}
             <div className="lg:col-span-7 flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold" style={{ color: 'var(--color-texto)' }}>Academias</h2>
-                  <p className="text-xs" style={{ color: 'var(--color-atenuado)' }}>
-                    Gestiona los portales independientes instalados en el motor
+                  <h2 className="text-xl font-bold text-[#E7EDEA] flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-[#3DD68C]" />
+                    Academias
+                  </h2>
+                  <p className="text-xs text-[#73827C]">
+                    Portales independientes instalados en el motor multi-inquilino
                   </p>
                 </div>
-                <button
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowCreateAcademiaModal(true)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all duration-200 flex items-center gap-2"
-                  style={{
-                    backgroundColor: 'var(--color-verde)',
-                    color: 'var(--color-fondo)'
-                  }}
+                  className="px-4 py-2.5 rounded-2xl text-xs font-bold cursor-pointer transition-all duration-300 flex items-center gap-2 bg-[#3DD68C] text-[#0B0F0E] shadow-[0_4px_20px_-5px_rgba(61,214,140,0.4)]"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                  </svg>
+                  <Plus className="w-4 h-4" strokeWidth={2.5} />
                   Nueva Academia
-                </button>
+                </motion.button>
               </div>
 
-              {errorAcademias && (
-                <div className="p-4 rounded-xl text-sm border flex items-center gap-3"
-                  style={{ 
-                    backgroundColor: 'rgba(255, 107, 107, 0.08)', 
-                    borderColor: 'rgba(255, 107, 107, 0.2)',
-                    color: 'var(--color-rojo)'
-                  }}>
-                  <span>{errorAcademias}</span>
-                </div>
-              )}
-
               {loadingAcademias ? (
-                <div className="flex justify-center py-12">
-                  <svg className="animate-spin h-8 w-8 animate-duration-750" fill="none" viewBox="0 0 24 24" style={{ color: 'var(--color-verde)' }}>
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
+                <div className="flex justify-center py-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#3DD68C]" />
                 </div>
               ) : academias.length === 0 ? (
-                <div className="p-12 text-center rounded-xl border border-dashed" style={{ borderColor: 'var(--color-linea)' }}>
-                  <p style={{ color: 'var(--color-atenuado)' }}>No hay academias creadas todavía.</p>
-                </div>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-12 text-center rounded-2xl border border-dashed border-[#26302C]"
+                >
+                  <p className="text-sm text-[#73827C]">No hay academias creadas todavía. Crea una para comenzar.</p>
+                </motion.div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-1">
-                  {academias.map((academy) => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[520px] overflow-y-auto pr-1">
+                  {academias.map((academy, index) => {
                     const isSelected = selectedAcademia?.id === academy.id;
                     return (
-                      <div
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
                         key={academy.id}
                         onClick={() => setSelectedAcademia(academy)}
-                        className="p-5 rounded-xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col gap-4 group"
+                        className={`p-5 rounded-2xl border glassmorphism-hover cursor-pointer relative overflow-hidden flex flex-col gap-4 group ${
+                          isSelected ? 'bg-[#141A18]/80' : 'bg-[#141A18]/30'
+                        }`}
                         style={{
-                          backgroundColor: isSelected ? 'rgba(20, 26, 24, 0.8)' : 'rgba(20, 26, 24, 0.4)',
                           borderColor: isSelected ? academy.color_acento : 'var(--color-linea)',
-                          boxShadow: isSelected ? `0 4px 20px -5px ${academy.color_acento}40` : 'none'
+                          boxShadow: isSelected ? `0 8px 30px -10px ${academy.color_acento}40` : 'none'
                         }}
                       >
-                        {/* Glow de color al hacer hover */}
-                        <div className="absolute -right-12 -bottom-12 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity duration-300"
-                          style={{ backgroundColor: academy.color_acento }} />
+                        {/* Glow de color del acento de la academia */}
+                        <div 
+                          className="absolute -right-12 -bottom-12 w-24 h-24 rounded-full blur-2xl opacity-5 group-hover:opacity-15 transition-opacity duration-300 pointer-events-none"
+                          style={{ backgroundColor: academy.color_acento }} 
+                        />
 
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: academy.color_acento }} />
-                            <h3 className="font-bold text-sm tracking-tight" style={{ color: 'var(--color-texto)' }}>
+                            <span className="flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: academy.color_acento }} />
+                            <h3 className="font-bold text-sm tracking-tight text-[#E7EDEA]">
                               {academy.nombre}
                             </h3>
                           </div>
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md"
-                            style={{ 
-                              backgroundColor: academy.activa ? 'rgba(61, 214, 140, 0.08)' : 'rgba(255, 107, 107, 0.08)',
-                              color: academy.activa ? 'var(--color-verde)' : 'var(--color-rojo)'
-                            }}>
+                          
+                          <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border ${
+                            academy.activa 
+                              ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' 
+                              : 'bg-red-500/5 border-red-500/10 text-red-400'
+                          }`}>
                             {academy.activa ? 'Activa' : 'Inactiva'}
                           </span>
                         </div>
 
                         <div>
-                          <p className="text-xs line-clamp-2 min-h-[32px]" style={{ color: 'var(--color-atenuado)' }}>
+                          <p className="text-xs text-[#73827C] line-clamp-2 min-h-[32px]">
                             {academy.descripcion || 'Sin descripción disponible.'}
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--color-linea)' }}>
-                          <span className="text-[11px] font-mono" style={{ color: 'var(--color-atenuado)' }}>
+                        <div className="flex items-center justify-between border-t border-[#26302C] pt-3">
+                          <span className="text-[11px] font-mono text-[#73827C] bg-[#0B0F0E]/40 px-2 py-0.5 rounded-md">
                             /{academy.slug}
                           </span>
-                          <span className="text-[10px]" style={{ color: 'var(--color-verde)' }}>
-                            Gestionar {isSelected ? '▶' : ''}
+                          
+                          <span className="text-[10px] font-bold flex items-center gap-0.5 text-emerald-400 transition-transform group-hover:translate-x-0.5 duration-200">
+                            Gestionar <ChevronRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -335,27 +338,25 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
 
             {/* COLUMNA DERECHA: ADMINISTRADORES DE LA ACADEMIA SELECCIONADA (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col gap-6 p-6 rounded-xl border"
-              style={{
-                backgroundColor: 'rgba(11, 15, 14, 0.4)',
-                borderColor: 'var(--color-linea)'
-              }}
-            >
+            <div className="lg:col-span-5 flex flex-col gap-6 p-6 rounded-2xl border bg-[#0B0F0E]/30 border-[#26302C]">
               {selectedAcademia ? (
                 <>
-                  <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: 'var(--color-linea)' }}>
+                  <div className="flex items-center justify-between pb-4 border-b border-[#26302C]">
                     <div>
-                      <h3 className="text-lg font-bold" style={{ color: 'var(--color-texto)' }}>
+                      <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                        <Users className="w-5 h-5 text-[#3DD68C]" />
                         Administradores
                       </h3>
-                      <p className="text-xs" style={{ color: 'var(--color-atenuado)' }}>
-                        Gestores de <strong>{selectedAcademia.nombre}</strong>
+                      <p className="text-xs text-[#73827C]">
+                        Gestores de <strong className="text-[#E7EDEA]">{selectedAcademia.nombre}</strong>
                       </p>
                     </div>
                     
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => setShowCreateAdminModal(true)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-200 flex items-center gap-1.5 border"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all duration-200 flex items-center gap-1 border"
                       style={{
                         borderColor: selectedAcademia.color_acento,
                         color: selectedAcademia.color_acento,
@@ -368,78 +369,61 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         e.currentTarget.style.backgroundColor = `${selectedAcademia.color_acento}08`;
                       }}
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                      </svg>
+                      <Plus className="w-3.5 h-3.5" />
                       Agregar
-                    </button>
+                    </motion.button>
                   </div>
 
-                  {errorAdmins && (
-                    <div className="p-3 rounded-lg text-xs border"
-                      style={{ 
-                        backgroundColor: 'rgba(255, 107, 107, 0.08)', 
-                        borderColor: 'rgba(255, 107, 107, 0.2)',
-                        color: 'var(--color-rojo)'
-                      }}>
-                      <span>{errorAdmins}</span>
-                    </div>
-                  )}
-
                   {loadingAdmins ? (
-                    <div className="flex justify-center py-8">
-                      <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24" style={{ color: selectedAcademia.color_acento }}>
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: selectedAcademia.color_acento }} />
                     </div>
                   ) : admins.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <p className="text-xs" style={{ color: 'var(--color-atenuado)' }}>
+                    <div className="py-16 text-center">
+                      <p className="text-xs text-[#73827C]">
                         No hay administradores registrados para esta academia.
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                      {admins.map((admin) => (
-                        <div
+                    <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                      {admins.map((admin, index) => (
+                        <motion.div
+                          initial={{ opacity: 0, x: 5 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
                           key={admin.id}
-                          className="p-3.5 rounded-lg border flex justify-between items-center"
-                          style={{
-                            backgroundColor: 'rgba(20, 26, 24, 0.3)',
-                            borderColor: 'var(--color-linea)'
-                          }}
+                          className="p-3.5 rounded-xl border border-[#26302C] bg-[#141A18]/30 flex justify-between items-center"
                         >
                           <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-bold" style={{ color: 'var(--color-texto)' }}>
+                            <span className="text-sm font-bold text-[#E7EDEA]">
                               {admin.nombre || 'Sin Nombre'}
                             </span>
-                            <span className="text-xs" style={{ color: 'var(--color-atenuado)' }}>
+                            <span className="text-xs text-[#73827C]">
                               {admin.email}
                             </span>
                           </div>
                           
-                          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md"
-                            style={{ 
-                              backgroundColor: admin.activo ? 'rgba(61, 214, 140, 0.08)' : 'rgba(255, 107, 107, 0.08)',
-                              color: admin.activo ? 'var(--color-verde)' : 'var(--color-rojo)'
-                            }}>
+                          <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border ${
+                            admin.activo 
+                              ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' 
+                              : 'bg-red-500/5 border-red-500/10 text-red-400'
+                          }`}>
                             {admin.activo ? 'Activo' : 'Inactivo'}
                           </span>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                   )}
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-                  <svg className="w-12 h-12" style={{ color: 'var(--color-atenuado)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                  </svg>
+                <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+                  <div className="p-4 rounded-full bg-[#141A18]/50 border border-[#26302C] animate-float">
+                    <Globe className="w-8 h-8 text-[#73827C]" />
+                  </div>
                   <div>
-                    <h3 className="text-sm font-bold" style={{ color: 'var(--color-texto)' }}>Selecciona una Academia</h3>
-                    <p className="text-xs mt-1 max-w-[200px]" style={{ color: 'var(--color-atenuado)' }}>
-                      Haz clic en una academia de la izquierda para ver y gestionar sus administradores.
+                    <h3 className="text-sm font-bold text-[#E7EDEA]">Selecciona una Academia</h3>
+                    <p className="text-xs text-[#73827C] mt-1.5 max-w-[240px] leading-relaxed">
+                      Elige una academia de la izquierda para ver y gestionar su equipo de administradores.
                     </p>
                   </div>
                 </div>
@@ -448,50 +432,40 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
           </div>
         ) : (
-          /* VISTA INICIAL PARA ROLES ADMIN_ACADEMIA / ESTUDIANTE (PANEL BÁSICO) */
+          /* PANEL BÁSICO PARA ROLES ADMIN_ACADEMIA / ESTUDIANTE */
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl border flex flex-col gap-2"
-              style={{ backgroundColor: 'rgba(11, 15, 14, 0.4)', borderColor: 'var(--color-linea)' }}>
-              <h3 className="text-sm font-semibold" style={{ color: 'var(--color-atenuado)' }}>ID de Usuario</h3>
-              <p className="font-mono text-sm break-all" style={{ color: 'var(--color-texto)' }}>{user.usuario_id}</p>
+            <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30 flex flex-col gap-2">
+              <span className="text-xs font-bold text-[#73827C] uppercase tracking-wider">ID de Usuario</span>
+              <p className="font-mono text-sm break-all text-[#E7EDEA]">{user.usuario_id}</p>
             </div>
 
-            <div className="p-6 rounded-xl border flex flex-col gap-2"
-              style={{ backgroundColor: 'rgba(11, 15, 14, 0.4)', borderColor: 'var(--color-linea)' }}>
-              <h3 className="text-sm font-semibold" style={{ color: 'var(--color-atenuado)' }}>ID de Academia (Tenant)</h3>
-              <p className="font-mono text-sm" style={{ color: user.academia_id ? 'var(--color-texto)' : 'var(--color-atenuado)' }}>
-                {user.academia_id || 'NULL (Global)'}
-              </p>
+            <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30 flex flex-col gap-2">
+              <span className="text-xs font-bold text-[#73827C] uppercase tracking-wider">ID de Academia (Tenant)</span>
+              <p className="font-mono text-sm text-[#E7EDEA]">{user.academia_id || 'NULL (Global)'}</p>
             </div>
 
-            <div className="p-6 rounded-xl border flex flex-col gap-2"
-              style={{ backgroundColor: 'rgba(11, 15, 14, 0.4)', borderColor: 'var(--color-linea)' }}>
-              <h3 className="text-sm font-semibold" style={{ color: 'var(--color-atenuado)' }}>Permisos</h3>
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-verde)' }}>
-                Acceso de Rol: {user.rol}
+            <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30 flex flex-col gap-2">
+              <span className="text-xs font-bold text-[#73827C] uppercase tracking-wider">Permisos</span>
+              <p className="text-sm font-bold text-[#3DD68C] flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                Rol: {user.rol}
               </p>
             </div>
           </div>
         )}
 
         {/* METADATOS DEL SERVIDOR */}
-        <div className="p-6 rounded-xl border flex gap-4 items-start"
-          style={{ 
-            backgroundColor: 'rgba(91, 200, 255, 0.03)', 
-            borderColor: 'rgba(91, 200, 255, 0.1)' 
-          }}>
-          <div className="p-2.5 rounded-lg flex-shrink-0" style={{ backgroundColor: 'rgba(91, 200, 255, 0.08)' }}>
-            <svg className="w-6 h-6" style={{ color: 'var(--color-azul)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        <div className="p-5 rounded-2xl border border-sky-500/10 bg-sky-500/5 flex gap-4 items-start">
+          <div className="p-2.5 rounded-xl bg-sky-500/10 flex-shrink-0 text-sky-400">
+            <Database className="w-5 h-5" />
           </div>
           <div className="space-y-1">
-            <h4 className="text-sm font-bold" style={{ color: 'var(--color-azul)' }}>
-              Estado del Servidor
+            <h4 className="text-sm font-bold text-sky-400">
+              Estado de la Plataforma
             </h4>
-            <p className="text-sm" style={{ color: 'var(--color-texto)' }}>
+            <p className="text-xs text-[#E7EDEA] leading-relaxed">
               {user.rol === 'super_admin' 
-                ? 'Conectado a Neon PostgreSQL en modo agrupado (PgBouncer). Puedes registrar nuevas academias y habilitar administradores en tiempo real.' 
+                ? 'Conectado a Neon PostgreSQL en modo agrupado (PgBouncer). Los túneles de seguridad JWT y políticas multi-tenant se encuentran validados y activos.' 
                 : 'La autenticación mediante JWT ha sido validada de extremo a extremo para tu rol.'}
             </p>
           </div>
@@ -499,290 +473,252 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL: CREAR ACADEMIA */}
+      {/* MODALES CON ANIMACIONES FRAMER MOTION */}
       {/* ========================================================================= */}
-      {showCreateAcademiaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md p-6 rounded-2xl border flex flex-col gap-6"
-            style={{ 
-              backgroundColor: 'var(--color-superficie)', 
-              borderColor: 'var(--color-linea)' 
-            }}
+      <AnimatePresence>
+        
+        {/* MODAL: NUEVA ACADEMIA */}
+        {showCreateAcademiaModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           >
-            <div className="flex justify-between items-center pb-2 border-b" style={{ borderColor: 'var(--color-linea)' }}>
-              <h3 className="text-xl font-bold" style={{ color: 'var(--color-texto)' }}>Nueva Academia</h3>
-              <button 
-                onClick={() => setShowCreateAcademiaModal(false)}
-                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {formErrorAcademia && (
-              <div className="p-3 rounded-lg text-xs border"
-                style={{ 
-                  backgroundColor: 'rgba(255, 107, 107, 0.08)', 
-                  borderColor: 'rgba(255, 107, 107, 0.2)',
-                  color: 'var(--color-rojo)'
-                }}>
-                <span>{formErrorAcademia}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateAcademia} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                  Nombre de la Academia
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Apuesta con cabeza"
-                  value={nombre}
-                  onChange={(e) => handleNombreChange(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                    borderColor: 'var(--color-linea)',
-                    color: 'var(--color-texto)',
-                  }}
-                />
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', duration: 0.4 }}
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+            >
+              <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
+                <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-[#3DD68C]" />
+                  Nueva Academia
+                </h3>
+                
+                <button 
+                  onClick={() => setShowCreateAcademiaModal(false)}
+                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E7EDEA] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                  Slug (URL Amigable)
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="ej-apuesta-con-cabeza"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                    borderColor: 'var(--color-linea)',
-                    color: 'var(--color-texto)',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                  Descripción
-                </label>
-                <textarea
-                  placeholder="Descripción breve de los cursos o el propósito..."
-                  value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                    borderColor: 'var(--color-linea)',
-                    color: 'var(--color-texto)',
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                    URL del Logo (Opcional)
+              <form onSubmit={handleCreateAcademia} className="space-y-4 mt-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                    Nombre de la Academia
                   </label>
                   <input
-                    type="url"
-                    placeholder="https://..."
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                    style={{
-                      backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                      borderColor: 'var(--color-linea)',
-                      color: 'var(--color-texto)',
-                    }}
+                    type="text"
+                    required
+                    placeholder="Ej. Apuesta con cabeza"
+                    value={nombre}
+                    onChange={(e) => handleNombreChange(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                    Color Acento
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                    Slug (URL Amigable)
                   </label>
-                  <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    required
+                    placeholder="ej-apuesta-con-cabeza"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                    Descripción
+                  </label>
+                  <textarea
+                    placeholder="Breve descripción..."
+                    value={descripcion}
+                    onChange={(e) => setDescripcion(e.target.value)}
+                    rows={2}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                      URL del Logo
+                    </label>
                     <input
-                      type="color"
-                      value={colorAcento}
-                      onChange={(e) => setColorAcento(e.target.value)}
-                      className="w-10 h-10 border-0 outline-none rounded-xl cursor-pointer p-0"
-                      style={{ backgroundColor: 'transparent' }}
+                      type="url"
+                      placeholder="https://..."
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
                     />
-                    <span className="text-[10px] font-mono">{colorAcento}</span>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                      Color Acento
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={colorAcento}
+                        onChange={(e) => setColorAcento(e.target.value)}
+                        className="w-9 h-9 border-0 outline-none rounded-xl cursor-pointer p-0"
+                        style={{ backgroundColor: 'transparent' }}
+                      />
+                      <span className="text-[10px] font-mono text-[#E7EDEA]">{colorAcento}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-3 justify-end pt-4 border-t" style={{ borderColor: 'var(--color-linea)' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateAcademiaModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.4)',
-                    color: 'var(--color-texto)',
-                    border: '1px solid var(--color-linea)'
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={creatingAcademia}
-                  className="px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--color-verde)',
-                    color: 'var(--color-fondo)',
-                    opacity: creatingAcademia ? 0.7 : 1
-                  }}
-                >
-                  {creatingAcademia ? 'Creando...' : 'Crear Academia'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                <div className="flex gap-3 justify-end pt-4 border-t border-[#26302C] mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateAcademiaModal(false)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creatingAcademia}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-1.5"
+                  >
+                    {creatingAcademia && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Crear Academia
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: AGREGAR ADMINISTRADOR */}
-      {/* ========================================================================= */}
-      {showCreateAdminModal && selectedAcademia && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md p-6 rounded-2xl border flex flex-col gap-6"
-            style={{ 
-              backgroundColor: 'var(--color-superficie)', 
-              borderColor: 'var(--color-linea)' 
-            }}
+        {/* MODAL: NUEVO ADMIN */}
+        {showCreateAdminModal && selectedAcademia && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           >
-            <div className="flex justify-between items-center pb-2 border-b" style={{ borderColor: 'var(--color-linea)' }}>
-              <div>
-                <h3 className="text-xl font-bold" style={{ color: 'var(--color-texto)' }}>Nuevo Administrador</h3>
-                <p className="text-xs" style={{ color: 'var(--color-atenuado)' }}>
-                  Asignar a la academia: <strong style={{ color: selectedAcademia.color_acento }}>{selectedAcademia.nombre}</strong>
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowCreateAdminModal(false)}
-                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {formErrorAdmin && (
-              <div className="p-3 rounded-lg text-xs border"
-                style={{ 
-                  backgroundColor: 'rgba(255, 107, 107, 0.08)', 
-                  borderColor: 'rgba(255, 107, 107, 0.2)',
-                  color: 'var(--color-rojo)'
-                }}>
-                <span>{formErrorAdmin}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateAdmin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Juan Pérez"
-                  value={adminNombre}
-                  onChange={(e) => setAdminNombre(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                    borderColor: 'var(--color-linea)',
-                    color: 'var(--color-texto)',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="juan.perez@ejemplo.com"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                    borderColor: 'var(--color-linea)',
-                    color: 'var(--color-texto)',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-atenuado)' }}>
-                  Contraseña Temporal
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Mínimo 6 caracteres"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm focus:ring-2 focus:ring-[rgba(61,214,140,0.15)] focus:border-[#3DD68C]"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.6)',
-                    borderColor: 'var(--color-linea)',
-                    color: 'var(--color-texto)',
-                  }}
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4 border-t" style={{ borderColor: 'var(--color-linea)' }}>
-                <button
-                  type="button"
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', duration: 0.4 }}
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+            >
+              <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
+                <div>
+                  <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                    <Plus className="w-5 h-5" style={{ color: selectedAcademia.color_acento }} />
+                    Nuevo Administrador
+                  </h3>
+                  <p className="text-[11px] text-[#73827C] mt-0.5">
+                    Asignar a la academia: <strong style={{ color: selectedAcademia.color_acento }}>{selectedAcademia.nombre}</strong>
+                  </p>
+                </div>
+                
+                <button 
                   onClick={() => setShowCreateAdminModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
-                  style={{
-                    backgroundColor: 'rgba(11, 15, 14, 0.4)',
-                    color: 'var(--color-texto)',
-                    border: '1px solid var(--color-linea)'
-                  }}
+                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E7EDEA] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={creatingAdmin}
-                  className="px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
-                  style={{
-                    backgroundColor: selectedAcademia.color_acento,
-                    color: 'var(--color-fondo)',
-                    opacity: creatingAdmin ? 0.7 : 1
-                  }}
-                >
-                  {creatingAdmin ? 'Guardando...' : 'Crear Administrador'}
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-    </div>
+              <form onSubmit={handleCreateAdmin} className="space-y-4 mt-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                    Nombre Completo
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-3 w-4 h-4 text-[#73827C]" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. Juan Pérez"
+                      value={adminNombre}
+                      onChange={(e) => setAdminNombre(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                    Correo Electrónico
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3 w-4 h-4 text-[#73827C]" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="juan.perez@ejemplo.com"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
+                    Contraseña Temporal
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3 w-4 h-4 text-[#73827C]" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="Mínimo 6 caracteres"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-[#26302C] mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateAdminModal(false)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creatingAdmin}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-colors flex items-center gap-1.5"
+                    style={{
+                      backgroundColor: selectedAcademia.color_acento,
+                      color: 'var(--color-fondo)',
+                      opacity: creatingAdmin ? 0.7 : 1
+                    }}
+                  >
+                    {creatingAdmin && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Crear Administrador
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+
+    </motion.div>
   );
 }

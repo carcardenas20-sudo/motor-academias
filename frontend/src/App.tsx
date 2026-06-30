@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import { getMe, type TokenData } from './services/auth';
+import { Toaster } from 'sonner';
 
 export default function App() {
   const [user, setUser] = useState<TokenData | null>(null);
@@ -38,6 +39,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: 'var(--color-fondo)' }}>
+      <Toaster richColors theme="dark" position="top-right" />
       {checkingAuth ? (
         <div className="flex flex-col items-center gap-4">
           <svg className="animate-spin h-10 w-10 animate-duration-750" fill="none" viewBox="0 0 24 24" style={{ color: 'var(--color-verde)' }}>

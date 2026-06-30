@@ -17,5 +17,43 @@
 body {
   background-color: var(--color-fondo);
   color: var(--color-texto);
+  font-family: 'Outfit', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Clases de Utilidad de Otro Mundo */
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(1.1); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.glassmorphism {
+  background: rgba(20, 26, 24, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(38, 48, 44, 0.5);
+}
+
+.glassmorphism-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glassmorphism-hover:hover {
+  background: rgba(20, 26, 24, 0.8);
+  border-color: rgba(61, 214, 140, 0.3);
+  box-shadow: 0 12px 30px -10px rgba(61, 214, 140, 0.15);
 }
