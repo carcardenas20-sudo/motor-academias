@@ -127,6 +127,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [perfilGamif, setPerfilGamif] = useState<GamificacionPerfil | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  const [isMembershipBlocked, setIsMembershipBlocked] = useState(false);
 
   // Modales de CRUD Local
   const [showCursoModal, setShowCursoModal] = useState(false);
@@ -194,7 +195,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       const data = await getCursos(token, user.academia_id);
       setCursos(data);
     } catch (err: any) {
-      toast.error(err.message || 'Error al cargar los cursos.');
+      if (err.message?.includes('membresía') || err.message?.includes('402') || err.message?.includes('Payment')) {
+        setIsMembershipBlocked(true);
+      } else {
+        toast.error(err.message || 'Error al cargar los cursos.');
+      }
     } finally {
       setLoadingCursos(false);
     }
@@ -235,7 +240,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       const data = await getProgreso(token, user.academia_id);
       setProgreso(data);
     } catch (err: any) {
-      toast.error(err.message || 'Error al cargar el progreso.');
+      if (err.message?.includes('membresía') || err.message?.includes('402') || err.message?.includes('Payment')) {
+        setIsMembershipBlocked(true);
+      } else {
+        toast.error(err.message || 'Error al cargar el progreso.');
+      }
     }
   };
 
@@ -1352,6 +1361,76 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        ) : isMembershipBlocked ? (
+          /* PANTALLA DE PAYWALL PREMIUM */
+          <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto gap-6 border border-[#26302C] bg-[#141A18]/20 rounded-3xl p-8 relative overflow-hidden w-full">
+            <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full blur-[80px] opacity-10 pointer-events-none"
+              style={{ backgroundColor: 'var(--color-verde)' }}
+            />
+            
+            <div className="p-4 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 animate-float">
+              <Lock className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2 relative z-10">
+              <h2 className="text-xl font-black text-[#E7EDEA]">Acceso Premium Requerido</h2>
+              <p className="text-xs text-[#73827C] leading-relaxed">
+                No tienes una membresía activa en <span className="font-bold text-[#E7EDEA]">{brand?.nombre || 'esta academia'}</span>.
+                Adquiere tu plan para desbloquear todos los cursos, lecciones interactivas y ver tu posición en el ranking de estudiantes.
+              </p>
+            </div>
+
+            {/* Simulación del Webhook de Hotmart */}
+            <div className="w-full p-4 rounded-2xl border border-[#26302C] bg-[#0b0f0e]/50 text-left space-y-3 relative z-10">
+              <span className="text-[9px] uppercase font-mono text-[#73827C] font-bold">Simulador de Pago (Entorno de Pruebas)</span>
+              <div className="space-y-2">
+                <label className="block text-[9px] font-bold text-[#73827C]">CORREO A ENVIAR AL WEBHOOK</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={user.email}
+                  className="w-full px-3.5 py-2 rounded-lg border border-[#26302C] outline-none text-xs bg-[#141A18]/50 text-[#73827C]"
+                />
+              </div>
+              
+              <button
+                onClick={async () => {
+                  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                  setSubmittingProgreso(true); // Reutilizar spinner
+                  try {
+                    const res = await fetch(`${API_URL}/academias/${user.academia_id}/webhook/hotmart`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        event: 'PURCHASE_APPROVED',
+                        buyer: {
+                          email: user.email,
+                          name: 'Estudiante Premium'
+                        }
+                      })
+                    });
+                    if (!res.ok) throw new Error('Error al procesar el webhook');
+                    toast.success('¡Webhook enviado! Compra simulada aprobada.');
+                    
+                    // Reactivar acceso y recargar todo
+                    setIsMembershipBlocked(false);
+                    loadCursosLocal();
+                    loadProgresoLocal();
+                    loadGamificacionPerfil();
+                    loadLeaderboardLocal();
+                  } catch (err: any) {
+                    toast.error('Ocurrió un error al simular la compra.');
+                  } finally {
+                    setSubmittingProgreso(false);
+                  }
+                }}
+                disabled={submittingProgreso}
+                className="w-full py-2.5 rounded-xl text-xs font-black bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {submittingProgreso ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Simular Compra con Hotmart 🚀'}
+              </button>
             </div>
           </div>
         ) : (

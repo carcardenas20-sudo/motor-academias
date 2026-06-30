@@ -201,7 +201,7 @@ async def get_academia_public_info(slug: str):
     pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT nombre, logo_url, color_acento FROM academias WHERE slug = $1 AND activa = true",
+            "SELECT nombre, logo_url, color_acento, descripcion FROM academias WHERE slug = $1 AND activa = true",
             slug.lower().strip()
         )
     if not row:
@@ -212,8 +212,132 @@ async def get_academia_public_info(slug: str):
     return {
         "nombre": row["nombre"],
         "logo_url": row["logo_url"],
-        "color_acento": row["color_acento"]
+        "color_acento": row["color_acento"],
+        "descripcion": row["descripcion"]
     }
+
+
+@router.get("/public/slug/{slug}/cursos")
+async def get_public_courses_outline(slug: str):
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        # Obtener id de academia
+        academia_row = await conn.fetchrow(
+            "SELECT id FROM academias WHERE slug = $1 AND activa = true",
+            slug.lower().strip()
+        )
+        if not academia_row:
+            raise HTTPException(status_code=404, detail="La academia no existe o no está activa.")
+        
+        academia_uuid = academia_row["id"]
+        
+        # Obtener cursos publicados
+        cursos = await conn.fetch(
+            "SELECT id, titulo, descripcion, orden FROM cursos "
+            "WHERE academia_id = $1 AND publicado = true "
+            "ORDER BY orden ASC, creado_en DESC",
+            academia_uuid
+        )
+        
+        outline = []
+        for c in cursos:
+            curso_uuid = c["id"]
+            # Obtener bloques
+            bloques = await conn.fetch(
+                "SELECT id, titulo, orden FROM bloques "
+                "WHERE curso_id = $1 AND academia_id = $2 "
+                "ORDER BY orden ASC, creado_en DESC",
+                curso_uuid, academia_uuid
+            )
+            
+            bloques_list = []
+            for b in bloques:
+                bloque_uuid = b["id"]
+                # Obtener pildoras publicadas
+                pildoras = await conn.fetch(
+                    "SELECT id, titulo, tipo, duracion_min, orden FROM pildoras "
+                    "WHERE bloque_id = $1 AND academia_id = $2 AND publicada = true "
+                    "ORDER BY orden ASC, creado_en DESC",
+                    bloque_uuid, academia_uuid
+                )
+                
+                bloques_list.append({
+                    "id": str(bloque_uuid),
+                    "titulo": b["titulo"],
+                    "orden": b["orden"],
+                    "pildoras": [{
+                        "id": str(p["id"]),
+                        "titulo": p["titulo"],
+                        "tipo": p["tipo"],
+                        "duracion_min": p["duracion_min"],
+                        "orden": p["orden"]
+                    } for p in pildoras]
+                })
+                
+            outline.append({
+                "id": str(curso_uuid),
+                "titulo": c["titulo"],
+                "descripcion": c["descripcion"],
+                "orden": c["orden"],
+                "bloques": bloques_list
+            })
+            
+    return outline
+
+
+@router.post("/{academia_id}/webhook/hotmart")
+async def hotmart_webhook(
+    academia_id: str,
+    payload: dict
+):
+    event = payload.get("event")
+    buyer = payload.get("buyer", {})
+    email = buyer.get("email") or payload.get("buyer_email")
+    nombre = buyer.get("name") or payload.get("buyer_nombre")
+    
+    if not event or not email:
+        raise HTTPException(status_code=400, detail="Payload de Hotmart inválido.")
+        
+    try:
+        academia_uuid = uuid.UUID(academia_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de academia inválido.")
+        
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            user_row = await conn.fetchrow(
+                "SELECT id FROM usuarios WHERE email = $1 AND academia_id = $2",
+                email.lower().strip(), academia_uuid
+            )
+            
+            if user_row:
+                usuario_uuid = user_row["id"]
+            else:
+                import bcrypt
+                dummy_pwd = bcrypt.hashpw(b"Apuesta123!", bcrypt.gensalt()).decode("utf-8")
+                usuario_uuid = await conn.fetchval(
+                    "INSERT INTO usuarios (academia_id, email, password_hash, nombre, rol) "
+                    "VALUES ($1, $2, $3, $4, 'estudiante') RETURNING id",
+                    academia_uuid, email.lower().strip(), dummy_pwd, nombre or "Estudiante Nuevo"
+                )
+                
+            if event in ("PURCHASE_APPROVED", "subscription_active", "compra_aprobada"):
+                await conn.execute(
+                    "INSERT INTO membresias (academia_id, usuario_id, plan, activa, hotmart_id, comprada_en) "
+                    "VALUES ($1, $2, 'premium', true, $3, NOW()) "
+                    "ON CONFLICT (academia_id, usuario_id) DO UPDATE SET "
+                    "activa = true, comprada_en = NOW(), hotmart_id = EXCLUDED.hotmart_id",
+                    academia_uuid, usuario_uuid, "HOTMART-" + str(uuid.uuid4())[:8]
+                )
+            elif event in ("PURCHASE_REFUNDED", "PURCHASE_CHARGEBACK", "subscription_canceled", "compra_devolucion"):
+                await conn.execute(
+                    "UPDATE membresias SET activa = false "
+                    "WHERE academia_id = $1 AND usuario_id = $2",
+                    academia_uuid, usuario_uuid
+                )
+                
+    return {"status": "processed", "event": event, "email": email}
 
 
 @router.put("/{academia_id}", response_model=AcademiaResponse)

@@ -26,6 +26,7 @@ class TokenData(BaseModel):
     usuario_id: str
     academia_id: str | None
     rol: Rol
+    email: str | None = None
 
 
 class Token(BaseModel):
@@ -63,7 +64,7 @@ async def login(
         if slug:
             usuario = await conn.fetchrow(
                 """
-                SELECT u.id, u.academia_id, u.rol, u.password_hash 
+                SELECT u.id, u.academia_id, u.rol, u.password_hash, u.email 
                 FROM usuarios u
                 LEFT JOIN academias a ON u.academia_id = a.id
                 WHERE u.email = $1 
@@ -76,7 +77,7 @@ async def login(
         else:
             usuario = await conn.fetchrow(
                 """
-                SELECT id, academia_id, rol, password_hash 
+                SELECT id, academia_id, rol, password_hash, email 
                 FROM usuarios 
                 WHERE email = $1 
                   AND activo = true 
@@ -92,6 +93,7 @@ async def login(
         usuario_id=str(usuario["id"]),
         academia_id=str(usuario["academia_id"]) if usuario["academia_id"] else None,
         rol=usuario["rol"],
+        email=usuario["email"],
     ))
     return Token(access_token=token)
 

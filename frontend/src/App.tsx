@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import LandingPage from './components/LandingPage';
 import { getMe, type TokenData } from './services/auth';
 import { Toaster } from 'sonner';
 
@@ -103,7 +104,7 @@ function AppContent() {
           user ? (
             <Dashboard user={user} onLogout={handleLogout} />
           ) : (
-            <TenantRedirectLogin />
+            <LandingPage />
           )
         } />
 
@@ -122,10 +123,6 @@ function TenantLoginWrapper({ user, onLoginSuccess }: { user: TokenData | null; 
   return <Login onLoginSuccess={onLoginSuccess} />;
 }
 
-function TenantRedirectLogin() {
-  const { tenantSlug } = useParams<{ tenantSlug: string }>();
-  return <Navigate to={`/${tenantSlug}/login`} replace />;
-}
 
 export default function App() {
   return (

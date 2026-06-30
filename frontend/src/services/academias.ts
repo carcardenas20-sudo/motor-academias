@@ -109,6 +109,30 @@ export interface AcademiaPublicInfo {
   nombre: string;
   logo_url: string | null;
   color_acento: string;
+  descripcion: string | null;
+}
+
+export interface PublicPildora {
+  id: string;
+  titulo: string;
+  tipo: 'video' | 'texto';
+  duracion_min: number;
+  orden: number;
+}
+
+export interface PublicBloque {
+  id: string;
+  titulo: string;
+  orden: number;
+  pildoras: PublicPildora[];
+}
+
+export interface PublicCurso {
+  id: string;
+  titulo: string;
+  descripcion: string | null;
+  orden: number;
+  bloques: PublicBloque[];
 }
 
 export async function getAcademiaPublicInfo(slug: string): Promise<AcademiaPublicInfo> {
@@ -119,6 +143,19 @@ export async function getAcademiaPublicInfo(slug: string): Promise<AcademiaPubli
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.detail || 'Error al obtener la información de la academia');
+  }
+
+  return response.json();
+}
+
+export async function getPublicCoursesOutline(slug: string): Promise<PublicCurso[]> {
+  const response = await fetch(`${API_URL}/academias/public/slug/${slug}/cursos`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Error al obtener el plan de estudios de la academia');
   }
 
   return response.json();

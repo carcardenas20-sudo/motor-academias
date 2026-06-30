@@ -33,7 +33,7 @@ def require_estudiante(token_data: TokenData = Depends(verificar_token)) -> Toke
     return token_data
 
 
-def verify_academy_access(
+async def verify_academy_access(
     academia_id: str,
     token_data: TokenData = Depends(verificar_token)
 ) -> TokenData:
@@ -62,6 +62,23 @@ def verify_academy_access(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes acceso a los datos de esta academia."
         )
+
+    # Verificar membresía activa para estudiantes
+    if token_data.rol == "estudiante":
+        from app.database import get_pool
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            active = await conn.fetchval(
+                "SELECT activa FROM membresias "
+                "WHERE academia_id = $1 AND usuario_id = $2 AND activa = true "
+                "AND (vence_en IS NULL OR vence_en > NOW())",
+                req_uuid, uuid.UUID(token_data.usuario_id)
+            )
+            if not active:
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail="No tienes una membresía activa en esta academia."
+                )
 
     return token_data
 

@@ -4,6 +4,7 @@ export interface TokenData {
   usuario_id: string;
   academia_id: string | null;
   rol: 'super_admin' | 'admin_academia' | 'estudiante';
+  email?: string;
 }
 
 export interface LoginResponse {
