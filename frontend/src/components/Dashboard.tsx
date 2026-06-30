@@ -59,6 +59,12 @@ import {
   type Pildora,
   type Progreso
 } from '../services/cursos';
+import {
+  getGamificacionPerfil,
+  getLeaderboard,
+  type GamificacionPerfil,
+  type LeaderboardEntry
+} from '../services/gamificacion';
 
 interface DashboardProps {
   user: TokenData;
@@ -116,6 +122,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [progreso, setProgreso] = useState<Progreso[]>([]);
   const [selectedPildora, setSelectedPildora] = useState<Pildora | null>(null);
   const [submittingProgreso, setSubmittingProgreso] = useState(false);
+
+  // Estados de Gamificación
+  const [perfilGamif, setPerfilGamif] = useState<GamificacionPerfil | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
   // Modales de CRUD Local
   const [showCursoModal, setShowCursoModal] = useState(false);
@@ -228,9 +239,36 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     }
   };
 
+  // Cargar Perfil de Gamificación
+  const loadGamificacionPerfil = async () => {
+    if (!user.academia_id) return;
+    try {
+      const data = await getGamificacionPerfil(token, user.academia_id);
+      setPerfilGamif(data);
+    } catch (err: any) {
+      console.error('Error al cargar perfil de gamificación:', err);
+    }
+  };
+
+  // Cargar Clasificación (Leaderboard)
+  const loadLeaderboardLocal = async () => {
+    if (!user.academia_id) return;
+    setLoadingLeaderboard(true);
+    try {
+      const data = await getLeaderboard(token, user.academia_id);
+      setLeaderboard(data);
+    } catch (err: any) {
+      console.error('Error al cargar la tabla de clasificación:', err);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
+
   useEffect(() => {
     if (user.rol === 'estudiante' && token) {
       loadProgresoLocal();
+      loadGamificacionPerfil();
+      loadLeaderboardLocal();
     }
   }, [user.rol, token]);
 
@@ -602,6 +640,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       });
       
       toast.success(nextStatus ? '¡Clase completada!' : 'Clase marcada como pendiente.');
+      
+      // Recargar gamificación y clasificaciones
+      loadGamificacionPerfil();
+      loadLeaderboardLocal();
     } catch (err: any) {
       toast.error(err.message || 'Error al guardar progreso.');
     } finally {
@@ -719,9 +761,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           </div>
 
           <div className="flex items-center gap-4">
+            {user.rol === 'estudiante' && perfilGamif && (
+              <div className="flex items-center gap-3 mr-2 bg-emerald-500/5 border border-emerald-500/10 px-3.5 py-1.5 rounded-2xl">
+                <div className="flex flex-col text-right">
+                  <span className="text-[10px] text-[#73827C] font-bold uppercase tracking-wider">Nivel {perfilGamif.nivel}</span>
+                  <span className="text-xs font-black text-[#E7EDEA]">{perfilGamif.puntos} PTS</span>
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-[#3DD68C]/10 flex items-center justify-center text-[#3DD68C]">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+              </div>
+            )}
+            
             <div className="text-right">
               <p className="text-sm font-semibold text-[#E7EDEA]">
-                {user.rol === 'super_admin' ? 'Carlos' : 'Usuario'}
+                {user.rol === 'super_admin' ? 'Carlos' : user.rol === 'estudiante' ? 'Estudiante' : 'Usuario'}
               </p>
               <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full mt-1 border bg-emerald-500/5 border-emerald-500/20 text-[#3DD68C]">
                 <ShieldCheck className="w-3.5 h-3.5" />
@@ -1440,6 +1494,44 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   )}
                 </div>
               )}
+              {/* TABLA DE CLASIFICACIÓN (LEADERBOARD) */}
+              <div className="p-4 rounded-2xl border border-[#26302C] bg-[#141A18]/15 mt-4 space-y-3">
+                <div className="flex items-center gap-1.5 pb-2 border-b border-[#26302C]/40">
+                  <Sparkles className="w-4 h-4 text-[#3DD68C] animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#E7EDEA]">Ranking de la Academia</span>
+                </div>
+                
+                {loadingLeaderboard ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#3DD68C]" />
+                  </div>
+                ) : leaderboard.length === 0 ? (
+                  <p className="text-[9px] text-[#73827C] italic text-center py-2">Sin actividad registrada aún.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                    {leaderboard.map((entry, idx) => {
+                      const isTop3 = idx < 3;
+                      const badgeColors = ['bg-yellow-500/10 text-yellow-400 border-yellow-500/20', 'bg-slate-400/10 text-slate-300 border-slate-400/20', 'bg-amber-700/10 text-amber-500 border-amber-700/20'];
+                      return (
+                        <div key={idx} className="flex justify-between items-center text-[10px] py-1 border-b border-[#26302C]/10 last:border-b-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-4 h-4 rounded font-mono font-bold flex items-center justify-center border text-[8px] ${
+                              isTop3 ? badgeColors[idx] : 'bg-[#0b0f0e] text-[#73827C] border-[#26302C]'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                            <span className="font-semibold text-[#E7EDEA] line-clamp-1">{entry.nombre}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-right font-mono">
+                            <span className="text-[#73827C]">Nivel {entry.nivel}</span>
+                            <span className="font-bold text-[#3DD68C]">{entry.puntos} pts</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* COLUMNA DERECHA: REPRODUCTOR Y CONTENIDO (8 cols) */}

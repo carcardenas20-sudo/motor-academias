@@ -5,6 +5,7 @@ from app.database import get_pool, close_pool
 from app.auth import router as auth_router
 from app.academias import router as academias_router
 from app.cursos import router as cursos_router
+from app.gamificacion import router as gamificacion_router
 from app.config import settings
 
 
@@ -30,6 +31,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(academias_router, prefix="/academias", tags=["academias"])
 app.include_router(cursos_router)
+app.include_router(gamificacion_router)
 
 
 @app.get("/health")

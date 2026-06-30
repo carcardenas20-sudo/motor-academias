@@ -511,24 +511,55 @@ async def toggle_progreso(
         
     pool = await get_pool()
     async with pool.acquire() as conn:
-        # Verificar que la píldora exista y pertenezca a la academia
-        pildora_exists = await conn.fetchval(
-            "SELECT id FROM pildoras WHERE id = $1 AND academia_id = $2",
-            pildora_uuid, academia_uuid
-        )
-        if not pildora_exists:
-            raise HTTPException(status_code=404, detail="La lección no pertenece a esta academia.")
+        async with conn.transaction():
+            # Verificar que la píldora exista y pertenezca a la academia
+            pildora_exists = await conn.fetchval(
+                "SELECT id FROM pildoras WHERE id = $1 AND academia_id = $2",
+                pildora_uuid, academia_uuid
+            )
+            if not pildora_exists:
+                raise HTTPException(status_code=404, detail="La lección no pertenece a esta academia.")
+                
+            # Obtener estado de progreso previo
+            prev_completada = await conn.fetchval(
+                "SELECT completada FROM progreso "
+                "WHERE academia_id = $1 AND usuario_id = $2 AND pildora_id = $3",
+                academia_uuid, usuario_uuid, pildora_uuid
+            )
             
-        completada_en = datetime.now() if data.completada else None
-        
-        row = await conn.fetchrow(
-            "INSERT INTO progreso (academia_id, usuario_id, pildora_id, completada, completada_en) "
-            "VALUES ($1, $2, $3, $4, $5) "
-            "ON CONFLICT (academia_id, usuario_id, pildora_id) DO UPDATE "
-            "SET completada = EXCLUDED.completada, completada_en = EXCLUDED.completada_en "
-            "RETURNING pildora_id, completada, completada_en",
-            academia_uuid, usuario_uuid, pildora_uuid, data.completada, completada_en
-        )
+            # Solo actualizar si el estado cambió
+            if prev_completada is None or prev_completada != data.completada:
+                completada_en = datetime.now() if data.completada else None
+                row = await conn.fetchrow(
+                    "INSERT INTO progreso (academia_id, usuario_id, pildora_id, completada, completada_en) "
+                    "VALUES ($1, $2, $3, $4, $5) "
+                    "ON CONFLICT (academia_id, usuario_id, pildora_id) DO UPDATE "
+                    "SET completada = EXCLUDED.completada, completada_en = EXCLUDED.completada_en "
+                    "RETURNING pildora_id, completada, completada_en",
+                    academia_uuid, usuario_uuid, pildora_uuid, data.completada, completada_en
+                )
+                
+                # Actualizar gamificación
+                points_change = 10 if data.completada else -10
+                await conn.execute(
+                    """
+                    INSERT INTO gamificacion (academia_id, usuario_id, puntos, nivel, ultima_actividad)
+                    VALUES ($1, $2, GREATEST(0, $3), GREATEST(1, 1 + $3 // 100), NOW())
+                    ON CONFLICT (academia_id, usuario_id) DO UPDATE SET
+                        puntos = GREATEST(0, gamificacion.puntos + $3),
+                        nivel = GREATEST(1, 1 + (gamificacion.puntos + $3) / 100),
+                        ultima_actividad = NOW()
+                    """,
+                    academia_uuid, usuario_uuid, points_change
+                )
+            else:
+                # Si no cambió, retornar progreso actual
+                row = await conn.fetchrow(
+                    "SELECT pildora_id, completada, completada_en FROM progreso "
+                    "WHERE academia_id = $1 AND usuario_id = $2 AND pildora_id = $3",
+                    academia_uuid, usuario_uuid, pildora_uuid
+                )
+                
     return ProgresoResponse(
         pildora_id=str(row["pildora_id"]),
         completada=row["completada"],
