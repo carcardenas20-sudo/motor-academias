@@ -330,6 +330,14 @@ async def hotmart_webhook(
                     "activa = true, comprada_en = NOW(), hotmart_id = EXCLUDED.hotmart_id",
                     academia_uuid, usuario_uuid, "HOTMART-" + str(uuid.uuid4())[:8]
                 )
+                
+                # Registrar la venta en la tabla ventas
+                from decimal import Decimal
+                await conn.execute(
+                    "INSERT INTO ventas (academia_id, usuario_id, monto, moneda, referencia) "
+                    "VALUES ($1, $2, $3, 'USD', $4)",
+                    academia_uuid, usuario_uuid, Decimal("49.90"), "HOTMART-SALE-" + str(uuid.uuid4())[:8]
+                )
             elif event in ("PURCHASE_REFUNDED", "PURCHASE_CHARGEBACK", "subscription_canceled", "compra_devolucion"):
                 await conn.execute(
                     "UPDATE membresias SET activa = false "
@@ -384,3 +392,134 @@ async def update_academia_details(
         activa=row["activa"],
         creada_en=row["creada_en"]
     )
+
+
+class CostoCreate(BaseModel):
+    monto: float
+    descripcion: str
+
+
+@router.get("/{academia_id}/finanzas/metricas")
+async def get_finanzas_metricas(
+    academia_id: str,
+    admin_user: TokenData = Depends(require_admin_academia)
+):
+    try:
+        academia_uuid = uuid.UUID(academia_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de academia inválido.")
+        
+    if admin_user.rol != "super_admin" and str(admin_user.academia_id) != academia_id:
+        raise HTTPException(status_code=403, detail="No tienes acceso a los datos de esta academia.")
+        
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        ingresos_totales = await conn.fetchval(
+            "SELECT COALESCE(SUM(monto), 0) FROM ventas WHERE academia_id = $1",
+            academia_uuid
+        )
+        costos_totales = await conn.fetchval(
+            "SELECT COALESCE(SUM(monto), 0) FROM costos WHERE academia_id = $1",
+            academia_uuid
+        )
+        
+        beneficio_neto = float(ingresos_totales) - float(costos_totales)
+        
+        ventas_rows = await conn.fetch(
+            "SELECT v.id, 'venta' as tipo, v.monto, v.creado_en, u.nombre as detalle "
+            "FROM ventas v "
+            "LEFT JOIN usuarios u ON v.usuario_id = u.id "
+            "WHERE v.academia_id = $1",
+            academia_uuid
+        )
+        
+        costos_rows = await conn.fetch(
+            "SELECT id, 'costo' as tipo, monto, creado_en, descripcion as detalle "
+            "FROM costos "
+            "WHERE academia_id = $1",
+            academia_uuid
+        )
+        
+        transacciones = []
+        for r in ventas_rows:
+            transacciones.append({
+                "id": str(r["id"]),
+                "tipo": r["tipo"],
+                "monto": float(r["monto"]),
+                "fecha": r["creado_en"],
+                "detalle": r["detalle"] or "Estudiante Premium"
+            })
+            
+        for r in costos_rows:
+            transacciones.append({
+                "id": str(r["id"]),
+                "tipo": r["tipo"],
+                "monto": float(r["monto"]),
+                "fecha": r["creado_en"],
+                "detalle": r["detalle"]
+            })
+            
+        transacciones.sort(key=lambda x: x["fecha"], reverse=True)
+        
+    return {
+        "ingresos_totales": float(ingresos_totales),
+        "costos_totales": float(costos_totales),
+        "beneficio_neto": beneficio_neto,
+        "transacciones": transacciones[:30]
+    }
+
+
+@router.post("/{academia_id}/finanzas/costos", status_code=status.HTTP_201_CREATED)
+async def create_costo(
+    academia_id: str,
+    data: CostoCreate,
+    admin_user: TokenData = Depends(require_admin_academia)
+):
+    try:
+        academia_uuid = uuid.UUID(academia_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de academia inválido.")
+        
+    if admin_user.rol != "super_admin" and str(admin_user.academia_id) != academia_id:
+        raise HTTPException(status_code=403, detail="No tienes acceso a los datos de esta academia.")
+        
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "INSERT INTO costos (academia_id, monto, descripcion) "
+            "VALUES ($1, $2, $3) RETURNING id, monto, descripcion, creado_en",
+            academia_uuid, Decimal(str(data.monto)), data.descripcion
+        )
+    return {
+        "id": str(row["id"]),
+        "monto": float(row["monto"]),
+        "descripcion": row["descripcion"],
+        "creado_en": row["creado_en"]
+    }
+
+
+@router.delete("/{academia_id}/finanzas/costos/{costo_id}")
+async def delete_costo(
+    academia_id: str,
+    costo_id: str,
+    admin_user: TokenData = Depends(require_admin_academia)
+):
+    try:
+        academia_uuid = uuid.UUID(academia_id)
+        costo_uuid = uuid.UUID(costo_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID inválido.")
+        
+    if admin_user.rol != "super_admin" and str(admin_user.academia_id) != academia_id:
+        raise HTTPException(status_code=403, detail="No tienes acceso a los datos de esta academia.")
+        
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        deleted = await conn.execute(
+            "DELETE FROM costos WHERE id = $1 AND academia_id = $2",
+            costo_uuid, academia_uuid
+        )
+        if deleted == "DELETE 0":
+            raise HTTPException(status_code=404, detail="El gasto especificado no existe.")
+            
+    return {"status": "deleted"}

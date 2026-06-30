@@ -24,7 +24,8 @@ import {
   Edit3,
   Save,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  DollarSign
 } from 'lucide-react';
 
 import type { TokenData } from '../services/auth';
@@ -65,6 +66,12 @@ import {
   type GamificacionPerfil,
   type LeaderboardEntry
 } from '../services/gamificacion';
+import {
+  getFinanzasMetricas,
+  createCosto,
+  deleteCosto,
+  type FinanzasMetricas
+} from '../services/finanzas';
 
 interface DashboardProps {
   user: TokenData;
@@ -103,7 +110,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
   // Estados para Admin de Academia local (admin_academia)
   const { tenantSlug } = useParams<{ tenantSlug?: string }>();
-  const [activeTabLocal, setActiveTabLocal] = useState<'resumen' | 'cursos' | 'ajustes'>('cursos');
+  const [activeTabLocal, setActiveTabLocal] = useState<'resumen' | 'cursos' | 'ajustes' | 'finanzas'>('cursos');
   
   // Datos locales de la academia activa
   const [brand, setBrand] = useState<{ nombre: string; logo_url: string | null; color_acento: string } | null>(null);
@@ -128,6 +135,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const [isMembershipBlocked, setIsMembershipBlocked] = useState(false);
+
+  // Estados de Finanzas
+  const [finanzas, setFinanzas] = useState<FinanzasMetricas | null>(null);
+  const [loadingFinanzas, setLoadingFinanzas] = useState(false);
+  const [costoMonto, setCostoMonto] = useState('');
+  const [costoDescripcion, setCostoDescripcion] = useState('');
+  const [creatingCosto, setCreatingCosto] = useState(false);
 
   // Modales de CRUD Local
   const [showCursoModal, setShowCursoModal] = useState(false);
@@ -272,7 +286,63 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       setLoadingLeaderboard(false);
     }
   };
+  // Cargar Finanzas
+  const loadFinanzasLocal = async () => {
+    if (!user.academia_id) return;
+    setLoadingFinanzas(true);
+    try {
+      const data = await getFinanzasMetricas(token, user.academia_id);
+      setFinanzas(data);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al cargar métricas financieras.');
+    } finally {
+      setLoadingFinanzas(false);
+    }
+  };
 
+  const handleCostoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user.academia_id) return;
+    const montoNum = parseFloat(costoMonto);
+    if (isNaN(montoNum) || montoNum <= 0 || !costoDescripcion.trim()) {
+      toast.error('Gasto inválido.');
+      return;
+    }
+
+    setCreatingCosto(true);
+    try {
+      await createCosto(token, user.academia_id, {
+        monto: montoNum,
+        descripcion: costoDescripcion.trim()
+      });
+      toast.success('Gasto registrado con éxito.');
+      setCostoMonto('');
+      setCostoDescripcion('');
+      loadFinanzasLocal();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al guardar el gasto.');
+    } finally {
+      setCreatingCosto(false);
+    }
+  };
+
+  const handleCostoDelete = async (costoId: string) => {
+    if (!user.academia_id) return;
+    if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
+    try {
+      await deleteCosto(token, user.academia_id, costoId);
+      toast.success('Gasto eliminado.');
+      loadFinanzasLocal();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar el gasto.');
+    }
+  };
+
+  useEffect(() => {
+    if (user.rol === 'admin_academia' && activeTabLocal === 'finanzas' && token) {
+      loadFinanzasLocal();
+    }
+  }, [user.rol, activeTabLocal, token]);
   useEffect(() => {
     if (user.rol === 'estudiante' && token) {
       loadProgresoLocal();
@@ -1047,6 +1117,19 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 Ajustes de Marca
               </button>
 
+              <button
+                onClick={() => setActiveTabLocal('finanzas')}
+                className={`w-full p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center gap-3 text-sm font-bold ${
+                  activeTabLocal === 'finanzas'
+                    ? 'bg-[#141A18]/80 text-[#E7EDEA]'
+                    : 'bg-[#141A18]/20 border-transparent text-[#73827C] hover:bg-[#141A18]/40 hover:text-[#E7EDEA]'
+                }`}
+                style={{ borderColor: activeTabLocal === 'finanzas' ? 'var(--color-verde)' : 'transparent' }}
+              >
+                <DollarSign className="w-5 h-5" />
+                Finanzas
+              </button>
+
               {/* Info de la Academia Activa */}
               {brand && (
                 <div className="mt-6 p-4 rounded-2xl border border-[#26302C] bg-[#141A18]/20 text-center flex flex-col items-center gap-3">
@@ -1356,6 +1439,135 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                             </div>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTabLocal === 'finanzas' && (
+                <div className="space-y-6">
+                  {/* Vista Finanzas */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#E7EDEA]">Dashboard Financiero</h3>
+                      <p className="text-xs text-[#73827C] mt-0.5">Control de ingresos por Hotmart, registro de costos y ganancia neta.</p>
+                    </div>
+                  </div>
+
+                  {loadingFinanzas ? (
+                    <div className="flex justify-center py-20">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#3DD68C]" />
+                    </div>
+                  ) : !finanzas ? (
+                    <p className="text-xs text-[#73827C]">Error al cargar datos financieros.</p>
+                  ) : (
+                    <div className="space-y-8">
+                      {/* Tarjetas métricas */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
+                          <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Ingresos Totales</h4>
+                          <p className="text-2xl font-black text-emerald-400">+${finanzas.ingresos_totales.toFixed(2)} USD</p>
+                        </div>
+                        <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
+                          <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Costos Totales</h4>
+                          <p className="text-2xl font-black text-red-400">-${finanzas.costos_totales.toFixed(2)} USD</p>
+                        </div>
+                        <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
+                          <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Ganancia Neta</h4>
+                          <p className={`text-2xl font-black ${finanzas.beneficio_neto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {finanzas.beneficio_neto >= 0 ? '+' : ''}${finanzas.beneficio_neto.toFixed(2)} USD
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Registrar Gasto (5 cols) */}
+                        <div className="lg:col-span-5 p-5 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-4">
+                          <h4 className="text-xs font-bold text-[#E7EDEA] uppercase tracking-wider">Registrar Gasto Operativo</h4>
+                          
+                          <form onSubmit={handleCostoSubmit} className="space-y-4">
+                            <div>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Descripción</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Ej. Servidores, publicidad..."
+                                value={costoDescripcion}
+                                onChange={(e) => setCostoDescripcion(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Monto (USD)</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                required
+                                placeholder="0.00"
+                                value={costoMonto}
+                                onChange={(e) => setCostoMonto(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                              />
+                            </div>
+
+                            <button
+                              type="submit"
+                              disabled={creatingCosto}
+                              className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              {creatingCosto && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                              Registrar Costo
+                            </button>
+                          </form>
+                        </div>
+
+                        {/* Listado de transacciones (7 cols) */}
+                        <div className="lg:col-span-7 p-5 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-4">
+                          <h4 className="text-xs font-bold text-[#E7EDEA] uppercase tracking-wider">Historial de Transacciones</h4>
+                          
+                          {finanzas.transacciones.length === 0 ? (
+                            <p className="text-xs text-[#73827C] italic">Sin transacciones registradas.</p>
+                          ) : (
+                            <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
+                              {finanzas.transacciones.map((t) => (
+                                <div key={t.id} className="flex justify-between items-center p-3 rounded-xl border border-[#26302C]/40 bg-[#0B0F0E]/30 text-xs">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className={`px-1.5 py-0.5 text-[8px] font-bold uppercase rounded ${
+                                        t.tipo === 'venta' 
+                                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/10' 
+                                          : 'bg-red-500/10 text-red-400 border border-red-500/10'
+                                      }`}>
+                                        {t.tipo}
+                                      </span>
+                                      <span className="font-bold text-[#E7EDEA]">{t.detalle}</span>
+                                    </div>
+                                    <span className="text-[9px] text-[#73827C] block font-mono">
+                                      {new Date(t.fecha).toLocaleDateString()} {new Date(t.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-3">
+                                    <span className={`font-mono font-black ${t.tipo === 'venta' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                      {t.tipo === 'venta' ? '+' : '-'}${t.monto.toFixed(2)}
+                                    </span>
+                                    {t.tipo === 'costo' && (
+                                      <button
+                                        onClick={() => handleCostoDelete(t.id)}
+                                        className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-red-400 transition-colors"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
