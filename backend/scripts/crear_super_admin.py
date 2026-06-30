@@ -38,13 +38,17 @@ async def main():
 
     password_hash = hash_password(password)
 
-    conn = await asyncpg.connect(settings.database_url)
+    from app.database import get_connection_args
+    clean_url, ssl_ctx = get_connection_args(settings.database_url)
+    conn = await asyncpg.connect(clean_url, ssl=ssl_ctx)
+    
     try:
+        # 1. Crear / actualizar super_admin
         row = await conn.fetchrow(
             """
             INSERT INTO usuarios (academia_id, email, password_hash, nombre, rol, activo)
             VALUES (NULL, $1, $2, $3, 'super_admin', true)
-            ON CONFLICT (email) DO UPDATE
+            ON CONFLICT (email) WHERE academia_id IS NULL DO UPDATE
                 SET password_hash = EXCLUDED.password_hash,
                     nombre        = EXCLUDED.nombre,
                     rol           = 'super_admin',
@@ -57,6 +61,69 @@ async def main():
         print(f"   id:    {row['id']}")
         print(f"   email: {row['email']}")
         print(f"   rol:   {row['rol']}")
+
+        # 2. Inicializar academia "Apuesta con cabeza" si no existe
+        academia_row = await conn.fetchrow(
+            """
+            INSERT INTO academias (slug, nombre, descripcion, color_acento, activa)
+            VALUES ('apuesta-con-cabeza', 'Apuesta con cabeza', 'Academia de educación en apuestas deportivas para colombianos.', '#3DD68C', true)
+            ON CONFLICT (slug) DO UPDATE
+                SET nombre = EXCLUDED.nombre,
+                    descripcion = EXCLUDED.descripcion,
+                    color_acento = EXCLUDED.color_acento
+            RETURNING id, slug, nombre
+            """
+        )
+        print("\nAcademia demo lista:")
+        print(f"   id:     {academia_row['id']}")
+        print(f"   slug:   {academia_row['slug']}")
+        print(f"   nombre: {academia_row['nombre']}")
+
+        # 3. Crear / actualizar admin de la academia "Apuesta con cabeza"
+        admin_email = "admin@apuesta.com"
+        admin_pass = "Apuesta123!"
+        admin_pass_hash = hash_password(admin_pass)
+        admin_row = await conn.fetchrow(
+            """
+            INSERT INTO usuarios (academia_id, email, password_hash, nombre, rol, activo)
+            VALUES ($1, $2, $3, 'Administrador Apuesta', 'admin_academia', true)
+            ON CONFLICT (academia_id, email) WHERE academia_id IS NOT NULL DO UPDATE
+                SET password_hash = EXCLUDED.password_hash,
+                    nombre        = EXCLUDED.nombre,
+                    rol           = 'admin_academia',
+                    activo        = true
+            RETURNING id, email, rol
+            """,
+            academia_row['id'], admin_email, admin_pass_hash
+        )
+        print("\nAdministrador de academia demo listo:")
+        print(f"   id:       {admin_row['id']}")
+        print(f"   email:    {admin_row['email']} (contraseña: {admin_pass})")
+        print(f"   rol:      {admin_row['rol']}")
+        print(f"   academia: {academia_row['nombre']} ({academia_row['id']})")
+
+        # 4. Crear / actualizar estudiante de prueba
+        student_email = "estudiante@apuesta.com"
+        student_pass = "Apuesta123!"
+        student_pass_hash = hash_password(student_pass)
+        student_row = await conn.fetchrow(
+            """
+            INSERT INTO usuarios (academia_id, email, password_hash, nombre, rol, activo)
+            VALUES ($1, $2, $3, 'Estudiante Prueba', 'estudiante', true)
+            ON CONFLICT (academia_id, email) WHERE academia_id IS NOT NULL DO UPDATE
+                SET password_hash = EXCLUDED.password_hash,
+                    nombre        = EXCLUDED.nombre,
+                    rol           = 'estudiante',
+                    activo        = true
+            RETURNING id, email, rol
+            """,
+            academia_row['id'], student_email, student_pass_hash
+        )
+        print("\nEstudiante demo listo:")
+        print(f"   id:       {student_row['id']}")
+        print(f"   email:    {student_row['email']} (contraseña: {student_pass})")
+        print(f"   rol:      {student_row['rol']}")
+
     finally:
         await conn.close()
 

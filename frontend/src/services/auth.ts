@@ -11,16 +11,24 @@ export interface LoginResponse {
   token_type: string;
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(email: string, password: string, tenant?: string | null): Promise<LoginResponse> {
   const formData = new URLSearchParams();
   formData.append('username', email);
   formData.append('password', password);
 
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const url = tenant ? `${API_URL}/auth/login?tenant=${encodeURIComponent(tenant)}` : `${API_URL}/auth/login`;
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  if (tenant) {
+    headers['X-Tenant-Slug'] = tenant;
+  }
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
+    headers,
     body: formData.toString(),
   });
 

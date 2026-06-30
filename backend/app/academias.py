@@ -6,7 +6,7 @@ from typing import List
 from datetime import datetime
 
 from app.database import get_pool
-from app.dependencies import get_current_super_admin
+from app.dependencies import get_current_super_admin, require_admin_academia
 from app.auth import TokenData
 
 router = APIRouter()
@@ -18,6 +18,14 @@ class AcademiaCreate(BaseModel):
     descripcion: str | None = None
     logo_url: str | None = None
     color_acento: str = "#3DD68C"
+
+
+class AcademiaUpdate(BaseModel):
+    nombre: str
+    descripcion: str | None = None
+    logo_url: str | None = None
+    color_acento: str = "#3DD68C"
+    activa: bool = True
 
 
 class AcademiaResponse(BaseModel):
@@ -186,3 +194,69 @@ async def list_academia_admins(
             creado_en=row["creado_en"]
         ) for row in rows
     ]
+
+
+@router.get("/public/{slug}")
+async def get_academia_public_info(slug: str):
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT nombre, logo_url, color_acento FROM academias WHERE slug = $1 AND activa = true",
+            slug.lower().strip()
+        )
+    if not row:
+        raise HTTPException(
+            status_code=404,
+            detail="La academia especificada no existe o no está activa."
+        )
+    return {
+        "nombre": row["nombre"],
+        "logo_url": row["logo_url"],
+        "color_acento": row["color_acento"]
+    }
+
+
+@router.put("/{academia_id}", response_model=AcademiaResponse)
+async def update_academia_details(
+    academia_id: str,
+    data: AcademiaUpdate,
+    admin_user: TokenData = Depends(require_admin_academia)
+):
+    try:
+        academia_uuid = uuid.UUID(academia_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID de academia inválido."
+        )
+
+    # Si no es super_admin, verificar que solo pueda editar su propia academia
+    if admin_user.rol != "super_admin" and str(admin_user.academia_id) != academia_id:
+         raise HTTPException(
+             status_code=status.HTTP_403_FORBIDDEN,
+             detail="No tienes permisos para modificar esta academia."
+         )
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "UPDATE academias SET nombre = $1, descripcion = $2, logo_url = $3, color_acento = $4, activa = $5 "
+            "WHERE id = $6 "
+            "RETURNING id, slug, nombre, descripcion, logo_url, color_acento, activa, creada_en",
+            data.nombre, data.descripcion, data.logo_url, data.color_acento, data.activa, academia_uuid
+        )
+        if not row:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="La academia especificada no existe."
+            )
+    return AcademiaResponse(
+        id=str(row["id"]),
+        slug=row["slug"],
+        nombre=row["nombre"],
+        descripcion=row["descripcion"],
+        logo_url=row["logo_url"],
+        color_acento=row["color_acento"],
+        activa=row["activa"],
+        creada_en=row["creada_en"]
+    )

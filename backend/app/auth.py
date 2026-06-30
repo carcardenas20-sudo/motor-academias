@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Literal
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import bcrypt
 from jose import JWTError, jwt
@@ -17,6 +17,7 @@ def verificar_password(plain_password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
     except Exception:
         return False
+
 
 Rol = Literal["super_admin", "admin_academia", "estudiante"]
 
@@ -49,13 +50,40 @@ def verificar_token(token: str = Depends(oauth2_scheme)) -> TokenData:
 
 
 @router.post("/login", response_model=Token)
-async def login(form: OAuth2PasswordRequestForm = Depends()):
+async def login(
+    form: OAuth2PasswordRequestForm = Depends(),
+    x_tenant_slug: str | None = Header(None, alias="X-Tenant-Slug"),
+    tenant: str | None = None
+):
+    slug = tenant or x_tenant_slug
+    email_clean = form.username.lower().strip()
+    
     pool = await get_pool()
     async with pool.acquire() as conn:
-        usuario = await conn.fetchrow(
-            "SELECT id, academia_id, rol, password_hash FROM usuarios WHERE email = $1 AND activo = true",
-            form.username,
-        )
+        if slug:
+            usuario = await conn.fetchrow(
+                """
+                SELECT u.id, u.academia_id, u.rol, u.password_hash 
+                FROM usuarios u
+                LEFT JOIN academias a ON u.academia_id = a.id
+                WHERE u.email = $1 
+                  AND u.activo = true 
+                  AND (u.academia_id IS NULL OR (a.slug = $2 AND a.activa = true))
+                """,
+                email_clean,
+                slug.lower().strip(),
+            )
+        else:
+            usuario = await conn.fetchrow(
+                """
+                SELECT id, academia_id, rol, password_hash 
+                FROM usuarios 
+                WHERE email = $1 
+                  AND activo = true 
+                  AND academia_id IS NULL
+                """,
+                email_clean,
+            )
 
     if not usuario or not verificar_password(form.password, usuario["password_hash"]):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas.")

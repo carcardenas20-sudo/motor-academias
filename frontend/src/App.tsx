@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import { getMe, type TokenData } from './services/auth';
 import { Toaster } from 'sonner';
 
-export default function App() {
+function AppContent() {
   const [user, setUser] = useState<TokenData | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function checkSession() {
@@ -28,19 +30,25 @@ export default function App() {
   const handleLoginSuccess = (newToken: string, userData: TokenData) => {
     localStorage.setItem('token', newToken);
     setUser(userData);
+    
+    if (userData.rol === 'super_admin') {
+      navigate('/');
+    } else {
+      // Si el token tiene academia_id, redirigiremos al tenant correspondiente
+      // (el dashboard resolverá la vista o podemos redirigir al slug actual si ya existe)
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    navigate('/');
   };
 
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4"
-      style={{ backgroundColor: 'var(--color-fondo)' }}>
-      <Toaster richColors theme="dark" position="top-right" />
-      {checkingAuth ? (
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 w-full"
+        style={{ backgroundColor: 'var(--color-fondo)' }}>
         <div className="flex flex-col items-center gap-4">
           <svg className="animate-spin h-10 w-10 animate-duration-750" fill="none" viewBox="0 0 24 24" style={{ color: 'var(--color-verde)' }}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -50,12 +58,81 @@ export default function App() {
             Verificando sesión...
           </p>
         </div>
-      ) : user ? (
-        <Dashboard user={user} onLogout={handleLogout} />
-      ) : (
-        <Login onLoginSuccess={handleLoginSuccess} />
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 w-full"
+      style={{ backgroundColor: 'var(--color-fondo)' }}>
+      <Routes>
+        {/* Ruta principal (Solo para Super Admin, redirección para otros) */}
+        <Route path="/" element={
+          user ? (
+            user.rol === 'super_admin' ? (
+              <Dashboard user={user} onLogout={handleLogout} />
+            ) : (
+              <div className="text-center p-8 border rounded-2xl glassmorphism max-w-md"
+                style={{ borderColor: 'var(--color-linea)', backgroundColor: 'var(--color-superficie)' }}>
+                <h3 className="text-lg font-bold mb-2 text-[#E7EDEA]">Acceso correcto</h3>
+                <p className="text-xs text-[#73827C] mb-6">
+                  Has iniciado sesión. Por favor, ingresa al portal específico de tu academia para ver tus contenidos.
+                </p>
+                <button onClick={handleLogout} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                  Cerrar Sesión
+                </button>
+              </div>
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+
+        {/* Login global para Super Admin */}
+        <Route path="/login" element={
+          user ? <Navigate to="/" replace /> : <Login onLoginSuccess={handleLoginSuccess} />
+        } />
+
+        {/* Login contextualizado por Academia */}
+        <Route path="/:tenantSlug/login" element={
+          <TenantLoginWrapper user={user} onLoginSuccess={handleLoginSuccess} />
+        } />
+
+        {/* Vista del Tenant / Academia */}
+        <Route path="/:tenantSlug" element={
+          user ? (
+            <Dashboard user={user} onLogout={handleLogout} />
+          ) : (
+            <TenantRedirectLogin />
+          )
+        } />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
+  );
+}
+
+function TenantLoginWrapper({ user, onLoginSuccess }: { user: TokenData | null; onLoginSuccess: (token: string, userData: TokenData) => void }) {
+  const { tenantSlug } = useParams<{ tenantSlug: string }>();
+  if (user) {
+    return <Navigate to={`/${tenantSlug}`} replace />;
+  }
+  return <Login onLoginSuccess={onLoginSuccess} />;
+}
+
+function TenantRedirectLogin() {
+  const { tenantSlug } = useParams<{ tenantSlug: string }>();
+  return <Navigate to={`/${tenantSlug}/login`} replace />;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Toaster richColors theme="dark" position="top-right" />
+      <AppContent />
+    </BrowserRouter>
   );
 }
 
