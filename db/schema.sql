@@ -6,6 +6,18 @@
 -- Extensión para UUIDs
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- Limpiar tablas si existen para permitir re-aplicar
+DROP TABLE IF EXISTS costos CASCADE;
+DROP TABLE IF EXISTS ventas CASCADE;
+DROP TABLE IF EXISTS gamificacion CASCADE;
+DROP TABLE IF EXISTS progreso CASCADE;
+DROP TABLE IF EXISTS membresias CASCADE;
+DROP TABLE IF EXISTS pildoras CASCADE;
+DROP TABLE IF EXISTS bloques CASCADE;
+DROP TABLE IF EXISTS cursos CASCADE;
+DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TABLE IF EXISTS academias CASCADE;
+
 -- ─── NIVEL PLATAFORMA ───────────────────────
 
 CREATE TABLE academias (

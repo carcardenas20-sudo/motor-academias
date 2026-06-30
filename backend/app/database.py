@@ -1,17 +1,18 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from contextlib import contextmanager
+import asyncpg
 from app.config import settings
 
+_pool: asyncpg.Pool | None = None
 
-@contextmanager
-def get_db():
-    conn = psycopg2.connect(settings.database_url, cursor_factory=RealDictCursor)
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+
+async def get_pool() -> asyncpg.Pool:
+    global _pool
+    if _pool is None:
+        _pool = await asyncpg.create_pool(settings.database_url)
+    return _pool
+
+
+async def close_pool():
+    global _pool
+    if _pool:
+        await _pool.close()
+        _pool = None
