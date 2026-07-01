@@ -1200,7 +1200,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         required
                         value={ajustesNombre}
                         onChange={(e) => setAjustesNombre(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all"
                       />
                     </div>
 
@@ -1211,7 +1211,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         onChange={(e) => setAjustesDescripcion(e.target.value)}
                         rows={3}
                         placeholder="Describe de qué trata tu academia..."
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all"
                       />
                     </div>
 
@@ -1222,7 +1222,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         placeholder="https://ejemplo.com/logo.png"
                         value={ajustesLogo}
                         onChange={(e) => setAjustesLogo(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all"
                       />
                     </div>
 
@@ -1230,7 +1230,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Color de Acento de la Interfaz</label>
                       <div className="flex items-center gap-3">
                         <input
-                          type="color"
+                           type="color"
                           value={ajustesColor}
                           onChange={(e) => setAjustesColor(e.target.value)}
                           className="w-10 h-10 border-0 outline-none rounded-xl cursor-pointer p-0 bg-transparent"
@@ -1242,7 +1242,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     <button
                       type="submit"
                       disabled={submittingAjustes}
-                      className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 btn-primary disabled:opacity-50"
                     >
                       {submittingAjustes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Guardar Cambios
@@ -1949,16 +1949,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C]/60 glassmorphism relative overflow-hidden shadow-2xl"
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
-                <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                <h3 className="text-lg font-bold text-[#E6ECE9] flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-[#3DD68C]" />
                   {editingCurso ? 'Editar Curso' : 'Nuevo Curso'}
                 </h3>
                 <button 
                   onClick={() => setShowCursoModal(false)}
-                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E7EDEA] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
+                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E6ECE9] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1974,7 +1974,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     required
                     value={cursoTitulo}
                     onChange={(e) => setCursoTitulo(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -1984,7 +1984,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     value={cursoDescripcion}
                     onChange={(e) => setCursoDescripcion(e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200 font-mono"
                   />
                 </div>
 
@@ -1995,7 +1995,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     min="0"
                     value={cursoOrden}
                     onChange={(e) => setCursoOrden(parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2007,21 +2007,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     onChange={(e) => setCursoPublicado(e.target.checked)}
                     className="w-4 h-4 rounded text-[#3DD68C] bg-[#0b0f0e] border-[#26302C] focus:ring-0"
                   />
-                  <label htmlFor="cursoPublicado" className="text-xs font-semibold text-[#E7EDEA] cursor-pointer">Publicar inmediatamente</label>
+                  <label htmlFor="cursoPublicado" className="text-xs font-semibold text-[#E6ECE9] cursor-pointer">Publicar inmediatamente</label>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-3 border-t border-[#26302C]">
                   <button
                     type="button"
                     onClick={() => setShowCursoModal(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0B0F0E]/40 text-[#E6ECE9] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={submittingCurso}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer btn-primary transition-all duration-300 flex items-center gap-1.5"
                   >
                     {submittingCurso && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Guardar
@@ -2044,16 +2044,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C]/60 glassmorphism relative overflow-hidden shadow-2xl"
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
-                <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                <h3 className="text-lg font-bold text-[#E6ECE9] flex items-center gap-2">
                   <CheckSquare className="w-5 h-5 text-[#3DD68C]" />
                   {editingBloque ? 'Editar Módulo' : 'Nuevo Módulo'}
                 </h3>
                 <button 
                   onClick={() => setShowBloqueModal(false)}
-                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E7EDEA] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
+                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E6ECE9] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2069,7 +2069,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     required
                     value={bloqueTitulo}
                     onChange={(e) => setBloqueTitulo(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2080,7 +2080,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     min="0"
                     value={bloqueOrden}
                     onChange={(e) => setBloqueOrden(parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2088,14 +2088,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <button
                     type="button"
                     onClick={() => setShowBloqueModal(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0B0F0E]/40 text-[#E6ECE9] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={submittingBloque}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer btn-primary transition-all duration-300 flex items-center gap-1.5"
                   >
                     {submittingBloque && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Guardar
@@ -2118,16 +2118,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C]/60 glassmorphism relative overflow-hidden shadow-2xl"
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
-                <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                <h3 className="text-lg font-bold text-[#E6ECE9] flex items-center gap-2">
                   <Video className="w-5 h-5 text-[#3DD68C]" />
                   {editingPildora ? 'Editar Lección' : 'Nueva Lección'}
                 </h3>
                 <button 
                   onClick={() => setShowPildoraModal(false)}
-                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E7EDEA] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
+                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E6ECE9] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2143,7 +2143,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     required
                     value={pildoraTitulo}
                     onChange={(e) => setPildoraTitulo(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2152,7 +2152,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <select
                     value={pildoraTipo}
                     onChange={(e) => setPildoraTipo(e.target.value as 'video' | 'texto' | 'prueba')}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#141A18] text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0D1210] text-[#E6ECE9] input-glow transition-all"
                   >
                     <option value="video">🎥 Video (URL)</option>
                     <option value="texto">📝 Texto (Markdown)</option>
@@ -2169,7 +2169,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       placeholder="https://www.youtube.com/watch?v=..."
                       value={pildoraContenido}
                       onChange={(e) => setPildoraContenido(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   ) : (
                     <textarea
@@ -2177,7 +2177,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       value={pildoraContenido}
                       onChange={(e) => setPildoraContenido(e.target.value)}
                       rows={4}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all font-mono"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200 font-mono"
                     />
                   )}
                 </div>
@@ -2190,7 +2190,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       min="0"
                       value={pildoraDuracion}
                       onChange={(e) => setPildoraDuracion(parseInt(e.target.value) || 0)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   </div>
 
@@ -2201,7 +2201,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       min="0"
                       value={pildoraOrden}
                       onChange={(e) => setPildoraOrden(parseInt(e.target.value) || 0)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -2214,21 +2214,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     onChange={(e) => setPildoraPublicada(e.target.checked)}
                     className="w-4 h-4 rounded text-[#3DD68C] bg-[#0b0f0e] border-[#26302C] focus:ring-0"
                   />
-                  <label htmlFor="pildoraPublicada" className="text-xs font-semibold text-[#E7EDEA] cursor-pointer">Publicar lección</label>
+                  <label htmlFor="pildoraPublicada" className="text-xs font-semibold text-[#E6ECE9] cursor-pointer">Publicar lección</label>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-3 border-t border-[#26302C]">
                   <button
                     type="button"
                     onClick={() => setShowPildoraModal(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0B0F0E]/40 text-[#E6ECE9] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={submittingPildora}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer btn-primary transition-all duration-300 flex items-center gap-1.5"
                   >
                     {submittingPildora && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Guardar
