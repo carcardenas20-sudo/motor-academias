@@ -73,14 +73,13 @@ function AppContent() {
             user.rol === 'super_admin' ? (
               <Dashboard user={user} onLogout={handleLogout} />
             ) : (
-              <div className="min-h-screen w-full flex items-center justify-center p-4">
-                <div className="text-center p-8 border rounded-2xl glassmorphism max-w-md"
-                  style={{ borderColor: 'var(--color-linea)', backgroundColor: 'var(--color-superficie)' }}>
-                  <h3 className="text-lg font-bold mb-2 text-[#E7EDEA]">Acceso correcto</h3>
-                  <p className="text-xs text-[#73827C] mb-6">
-                    Has iniciado sesión. Por favor, ingresa al portal específico de tu academia para ver tus contenidos.
+              <div className="min-h-screen w-full flex items-center justify-center p-4 bg-fondo">
+                <div className="text-center p-8 rounded-3xl glassmorphism max-w-md border border-linea">
+                  <h3 className="text-xl font-black mb-3 text-texto tracking-tight">Acceso correcto</h3>
+                  <p className="text-xs text-atenuado mb-6 leading-relaxed">
+                    Has iniciado sesión de manera exitosa. Por favor, ingresa al portal específico de tu academia para ver y disfrutar de tus contenidos.
                   </p>
-                  <button onClick={handleLogout} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                  <button onClick={handleLogout} className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-colors cursor-pointer">
                     Cerrar Sesión
                   </button>
                 </div>
@@ -93,7 +92,11 @@ function AppContent() {
 
         {/* Login global para Super Admin */}
         <Route path="/login" element={
-          user ? <Navigate to="/" replace /> : <Login onLoginSuccess={handleLoginSuccess} />
+          user ? <Navigate to="/" replace /> : (
+            <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-fondo">
+              <Login onLoginSuccess={handleLoginSuccess} />
+            </div>
+          )
         } />
 
         {/* Login contextualizado por Academia */}
@@ -122,7 +125,11 @@ function TenantLoginWrapper({ user, onLoginSuccess }: { user: TokenData | null; 
   if (user) {
     return <Navigate to={`/${tenantSlug}`} replace />;
   }
-  return <Login onLoginSuccess={onLoginSuccess} />;
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-fondo">
+      <Login onLoginSuccess={onLoginSuccess} />
+    </div>
+  );
 }
 
 

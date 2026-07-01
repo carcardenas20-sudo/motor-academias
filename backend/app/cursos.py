@@ -1,4 +1,5 @@
 import uuid
+import hashlib
 from datetime import datetime
 from typing import List, Literal
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -75,6 +76,16 @@ class ProgresoResponse(BaseModel):
     pildora_id: str
     completada: bool
     completada_en: datetime | None
+
+class CertificadoResponse(BaseModel):
+    certificado_id: str
+    nombre_estudiante: str
+    nombre_curso: str
+    nombre_academia: str
+    logo_url: str | None = None
+    color_acento: str
+    fecha_emision: datetime
+    fecha_emision_formateada: str
 
 # Helper functions to convert DB row to Response Model
 def map_row_to_curso(row) -> CursoResponse:
@@ -564,4 +575,101 @@ async def toggle_progreso(
         pildora_id=str(row["pildora_id"]),
         completada=row["completada"],
         completada_en=row["completada_en"]
+    )
+
+@router.get("/cursos/{curso_id}/certificado", response_model=CertificadoResponse)
+async def get_certificado(
+    academia_id: str,
+    curso_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    academia_uuid = uuid.UUID(academia_id)
+    usuario_uuid = uuid.UUID(current_user.usuario_id)
+    try:
+        curso_uuid = uuid.UUID(curso_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de curso inválido.")
+        
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        # 1. Verificar si el curso existe y pertenece a la academia
+        curso = await conn.fetchrow(
+            "SELECT id, titulo, publicado FROM cursos WHERE id = $1 AND academia_id = $2",
+            curso_uuid, academia_uuid
+        )
+        if not curso:
+            raise HTTPException(status_code=404, detail="El curso no pertenece a esta academia.")
+            
+        # 2. Contar píldoras publicadas en este curso
+        total_pildoras = await conn.fetchval(
+            """
+            SELECT COUNT(p.id) 
+            FROM pildoras p 
+            JOIN bloques b ON p.bloque_id = b.id 
+            WHERE b.curso_id = $1 AND p.publicada = true AND b.academia_id = $2
+            """,
+            curso_uuid, academia_uuid
+        )
+        
+        if total_pildoras == 0:
+            raise HTTPException(
+                status_code=400, 
+                detail="El curso no tiene lecciones publicadas para generar un certificado."
+            )
+            
+        # 3. Contar progreso completado por este usuario
+        completadas = await conn.fetchval(
+            """
+            SELECT COUNT(pr.id) 
+            FROM progreso pr 
+            JOIN pildoras p ON pr.pildora_id = p.id 
+            JOIN bloques b ON p.bloque_id = b.id 
+            WHERE b.curso_id = $1 AND pr.usuario_id = $2 AND pr.completada = true AND b.academia_id = $3
+            """,
+            curso_uuid, usuario_uuid, academia_uuid
+        )
+        
+        if completadas < total_pildoras:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Curso incompleto. Has completado {completadas} de {total_pildoras} lecciones publicadas."
+            )
+            
+        # 4. Obtener datos del estudiante, academia y fecha de última completación
+        estudiante_nombre = await conn.fetchval(
+            "SELECT nombre FROM usuarios WHERE id = $1 AND academia_id = $2",
+            usuario_uuid, academia_uuid
+        ) or "Estudiante"
+        
+        academia = await conn.fetchrow(
+            "SELECT nombre, logo_url, color_acento FROM academias WHERE id = $1",
+            academia_uuid
+        )
+        
+        # Fecha de la última píldora completada en este curso por este usuario
+        fecha_emision = await conn.fetchval(
+            """
+            SELECT MAX(pr.completada_en) 
+            FROM progreso pr 
+            JOIN pildoras p ON pr.pildora_id = p.id 
+            JOIN bloques b ON p.bloque_id = b.id 
+            WHERE b.curso_id = $1 AND pr.usuario_id = $2 AND pr.completada = true AND b.academia_id = $3
+            """,
+            curso_uuid, usuario_uuid, academia_uuid
+        ) or datetime.now()
+        
+    hash_seed = f"{current_user.usuario_id}:{curso_id}".encode()
+    certificado_id = hashlib.sha256(hash_seed).hexdigest()[:12].upper()
+    
+    fecha_emision_formateada = fecha_emision.strftime("%d/%m/%Y")
+    
+    return CertificadoResponse(
+        certificado_id=certificado_id,
+        nombre_estudiante=estudiante_nombre,
+        nombre_curso=curso["titulo"],
+        nombre_academia=academia["nombre"],
+        logo_url=academia["logo_url"],
+        color_acento=academia["color_acento"] or "#3DD68C",
+        fecha_emision=fecha_emision,
+        fecha_emision_formateada=fecha_emision_formateada
     )

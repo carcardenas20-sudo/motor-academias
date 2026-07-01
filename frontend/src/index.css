@@ -38,7 +38,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(122, 139, 132, 0.25);
+  background: rgba(122, 139, 132, 0.2);
   border-radius: 99px;
   border: 1px solid rgba(6, 9, 8, 0.3);
   transition: all 0.2s ease;
@@ -55,8 +55,8 @@ body {
 }
 
 @keyframes pulse-slow {
-  0%, 100% { opacity: 0.1; transform: scale(1) translate(0px, 0px); }
-  50% { opacity: 0.22; transform: scale(1.15) translate(20px, -20px); }
+  0%, 100% { opacity: 0.15; transform: scale(1) translate(0px, 0px); }
+  50% { opacity: 0.3; transform: scale(1.15) translate(20px, -20px); }
 }
 
 @keyframes text-glow {
@@ -68,8 +68,12 @@ body {
   animation: float 6s ease-in-out infinite;
 }
 
+.animate-float-slow {
+  animation: float 9s ease-in-out infinite;
+}
+
 .animate-pulse-slow {
-  animation: pulse-slow 10s ease-in-out infinite;
+  animation: pulse-slow 12s ease-in-out infinite;
 }
 
 .animate-text-glow {
@@ -78,24 +82,27 @@ body {
 
 /* Clases de Diseño Premium */
 .glassmorphism {
-  background: rgba(13, 18, 16, 0.6);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(30, 39, 36, 0.6);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  background: rgba(13, 18, 16, 0.45);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 
+    0 24px 80px -15px rgba(0, 0, 0, 0.65),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glassmorphism-hover {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glassmorphism-hover:hover {
-  background: rgba(13, 18, 16, 0.85);
-  border-color: rgba(61, 214, 140, 0.25);
-  transform: translateY(-3px) scale(1.01);
+  background: rgba(13, 18, 16, 0.7);
+  border-color: color-mix(in srgb, var(--color-verde) 25%, rgba(255, 255, 255, 0.05));
+  transform: translateY(-3px) scale(1.008);
   box-shadow: 
-    0 15px 35px -10px rgba(0, 0, 0, 0.6),
-    0 0 25px -5px rgba(61, 214, 140, 0.08);
+    0 30px 60px -10px rgba(0, 0, 0, 0.7),
+    0 0 30px -5px color-mix(in srgb, var(--color-verde) 12%, transparent),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Efectos de texto y gradientes */
@@ -106,25 +113,25 @@ body {
 }
 
 .accent-gradient {
-  background: linear-gradient(135deg, var(--color-verde) 0%, #27AD70 100%);
+  background: linear-gradient(135deg, var(--color-verde) 0%, color-mix(in srgb, var(--color-verde) 70%, #FFF) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* Botones e Inputs Premium */
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-verde) 0%, #2bb872 100%);
+  background: linear-gradient(135deg, var(--color-verde) 0%, color-mix(in srgb, var(--color-verde) 80%, #000) 100%);
   color: #060908;
   font-weight: 800;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px -3px rgba(61, 214, 140, 0.3);
+  box-shadow: 0 4px 15px -3px color-mix(in srgb, var(--color-verde) 35%, transparent);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px -5px rgba(61, 214, 140, 0.4),
-    0 0 15px -2px rgba(61, 214, 140, 0.2);
+    0 8px 25px -5px color-mix(in srgb, var(--color-verde) 50%, transparent),
+    0 0 15px -2px color-mix(in srgb, var(--color-verde) 30%, transparent);
   opacity: 0.95;
 }
 
@@ -133,15 +140,15 @@ body {
 }
 
 .input-glow {
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .input-glow:focus {
   border-color: var(--color-verde) !important;
   box-shadow: 
-    0 0 0 3px rgba(61, 214, 140, 0.15),
-    0 0 15px -3px rgba(61, 214, 140, 0.1);
-  background-color: rgba(6, 9, 8, 0.8) !important;
+    0 0 0 3px color-mix(in srgb, var(--color-verde) 15%, transparent),
+    0 0 15px -3px color-mix(in srgb, var(--color-verde) 10%, transparent);
+  background-color: rgba(6, 9, 8, 0.85) !important;
 }
 
 /* Tarjeta interactiva */
@@ -150,13 +157,14 @@ body {
 }
 
 .card-interactive:hover {
-  border-color: rgba(61, 214, 140, 0.2) !important;
-  background-color: rgba(13, 18, 16, 0.5) !important;
+  border-color: color-mix(in srgb, var(--color-verde) 20%, transparent) !important;
+  background-color: rgba(13, 18, 16, 0.45) !important;
   transform: translateX(4px);
 }
 
 /* Estilo personalizado de Iframe */
 iframe {
   transition: all 0.4s ease;
-  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
 }
+

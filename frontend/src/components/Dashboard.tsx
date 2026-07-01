@@ -807,21 +807,21 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   };
 
   return (
-    <div className="w-full min-h-screen py-8 md:py-16 px-4 md:px-8 flex justify-center items-start bg-[#060908] overflow-y-auto">
+    <div className="w-full min-h-screen py-8 md:py-16 px-4 md:px-8 flex justify-center items-start bg-fondo overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="w-full max-w-6xl p-6 md:p-10 rounded-3xl border glassmorphism relative overflow-hidden shadow-2xl"
+        className="w-full max-w-6xl p-6 md:p-10 rounded-3xl border glassmorphism relative overflow-hidden shadow-2xl border-linea"
       >
       {/* Orbes de luz decorativos flotantes de fondo */}
       <div 
         className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-[120px] transition-all duration-700 ease-out pointer-events-none animate-pulse-slow"
         style={{ 
-          backgroundColor: selectedAcademia ? `${selectedAcademia.color_acento}1e` : 'var(--color-verde)1c',
+          backgroundColor: selectedAcademia ? `${selectedAcademia.color_acento}1c` : 'var(--color-verde)1c',
         }} 
       />
-      <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-[100px] opacity-10 pointer-events-none bg-blue-500/10" />
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-[100px] opacity-10 pointer-events-none bg-blue-500/5" />
 
       <div className="relative z-10 flex flex-col gap-8">
         
@@ -830,34 +830,34 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           style={{ borderColor: 'var(--color-linea)' }}>
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-[#3DD68C]">
+              <span className="flex h-2 w-2 rounded-full animate-ping" style={{ backgroundColor: 'var(--color-verde)' }} />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-verde">
                 {user.rol === 'super_admin' ? 'Administrador Global' : 'Panel de Control'}
               </span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight mt-1 text-[#E7EDEA]">
+            <h1 className="text-3xl font-black tracking-tight mt-1 text-texto">
               Motor Academias
             </h1>
           </div>
 
           <div className="flex items-center gap-4">
             {user.rol === 'estudiante' && perfilGamif && (
-              <div className="flex items-center gap-3 mr-2 bg-emerald-500/5 border border-emerald-500/10 px-3.5 py-1.5 rounded-2xl">
+              <div className="flex items-center gap-3 mr-2 bg-verde/5 border border-verde/15 px-3.5 py-1.5 rounded-2xl">
                 <div className="flex flex-col text-right">
-                  <span className="text-[10px] text-[#73827C] font-bold uppercase tracking-wider">Nivel {perfilGamif.nivel}</span>
-                  <span className="text-xs font-black text-[#E7EDEA]">{perfilGamif.puntos} PTS</span>
+                  <span className="text-[10px] text-atenuado font-bold uppercase tracking-wider">Nivel {perfilGamif.nivel}</span>
+                  <span className="text-xs font-black text-texto">{perfilGamif.puntos} PTS</span>
                 </div>
-                <div className="w-7 h-7 rounded-lg bg-[#3DD68C]/10 flex items-center justify-center text-[#3DD68C]">
+                <div className="w-7 h-7 rounded-lg bg-verde/10 flex items-center justify-center text-verde">
                   <Sparkles className="w-4 h-4" />
                 </div>
               </div>
             )}
             
             <div className="text-right">
-              <p className="text-sm font-semibold text-[#E7EDEA]">
+              <p className="text-sm font-semibold text-texto">
                 {user.rol === 'super_admin' ? 'Carlos' : user.rol === 'estudiante' ? 'Estudiante' : 'Usuario'}
               </p>
-              <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full mt-1 border bg-emerald-500/5 border-emerald-500/20 text-[#3DD68C]">
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full mt-1 border bg-verde/5 border-verde/15 text-verde">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 {user.rol}
               </span>
@@ -883,11 +883,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <div className="lg:col-span-7 flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-[#E7EDEA] flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-[#3DD68C]" />
+                  <h2 className="text-xl font-bold text-texto flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-verde" />
                     Academias
                   </h2>
-                  <p className="text-xs text-[#73827C]">
+                  <p className="text-xs text-atenuado">
                     Portales independientes instalados en el motor multi-inquilino
                   </p>
                 </div>
@@ -896,7 +896,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowCreateAcademiaModal(true)}
-                  className="px-4 py-2.5 rounded-2xl text-xs font-bold cursor-pointer transition-all duration-300 flex items-center gap-2 bg-[#3DD68C] text-[#0B0F0E] shadow-[0_4px_20px_-5px_rgba(61,214,140,0.4)]"
+                  className="px-4 py-2.5 rounded-2xl text-xs font-bold cursor-pointer transition-all duration-300 flex items-center gap-2 btn-primary"
                 >
                   <Plus className="w-4 h-4" strokeWidth={2.5} />
                   Nueva Academia
@@ -905,15 +905,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
               {loadingAcademias ? (
                 <div className="flex justify-center py-20">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#3DD68C]" />
+                  <Loader2 className="w-8 h-8 animate-spin text-verde" />
                 </div>
               ) : academias.length === 0 ? (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="p-12 text-center rounded-2xl border border-dashed border-[#26302C]"
+                  className="p-12 text-center rounded-2xl border border-dashed border-linea"
                 >
-                  <p className="text-sm text-[#73827C]">No hay academias creadas todavía. Crea una para comenzar.</p>
+                  <p className="text-sm text-atenuado">No hay academias creadas todavía. Crea una para comenzar.</p>
                 </motion.div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[520px] overflow-y-auto pr-1">
@@ -927,10 +927,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         key={academy.id}
                         onClick={() => setSelectedAcademia(academy)}
                         className={`p-5 rounded-2xl border glassmorphism-hover cursor-pointer relative overflow-hidden flex flex-col gap-4 group ${
-                          isSelected ? 'bg-[#141A18]/80' : 'bg-[#141A18]/30'
+                          isSelected ? 'bg-superficie/80 border-verde/30' : 'bg-superficie/35 border-linea'
                         }`}
                         style={{
-                          borderColor: isSelected ? academy.color_acento : 'var(--color-linea)',
+                          borderColor: isSelected ? academy.color_acento : undefined,
                           boxShadow: isSelected ? `0 8px 30px -10px ${academy.color_acento}40` : 'none'
                         }}
                       >
@@ -943,7 +943,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3">
                             <span className="flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: academy.color_acento }} />
-                            <h3 className="font-bold text-sm tracking-tight text-[#E7EDEA]">
+                            <h3 className="font-bold text-sm tracking-tight text-texto">
                               {academy.nombre}
                             </h3>
                           </div>
@@ -958,17 +958,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         </div>
 
                         <div>
-                          <p className="text-xs text-[#73827C] line-clamp-2 min-h-[32px]">
+                          <p className="text-xs text-atenuado line-clamp-2 min-h-[32px]">
                             {academy.descripcion || 'Sin descripción disponible.'}
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-[#26302C] pt-3">
-                          <span className="text-[11px] font-mono text-[#73827C] bg-[#0B0F0E]/40 px-2 py-0.5 rounded-md">
+                        <div className="flex items-center justify-between border-t border-linea/65 pt-3">
+                          <span className="text-[11px] font-mono text-atenuado bg-fondo/40 px-2 py-0.5 rounded-md">
                             /{academy.slug}
                           </span>
                           
-                          <span className="text-[10px] font-bold flex items-center gap-0.5 text-emerald-400 transition-transform group-hover:translate-x-0.5 duration-200">
+                          <span className="text-[10px] font-bold flex items-center gap-0.5 text-verde transition-transform group-hover:translate-x-0.5 duration-200">
                             Gestionar <ChevronRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
@@ -980,17 +980,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
 
             {/* COLUMNA DERECHA: ADMINISTRADORES DE LA ACADEMIA SELECCIONADA (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col gap-6 p-6 rounded-2xl border bg-[#0B0F0E]/30 border-[#26302C]">
+            <div className="lg:col-span-5 flex flex-col gap-6 p-6 rounded-2xl border bg-superficie/20 border-linea">
               {selectedAcademia ? (
                 <>
-                  <div className="flex items-center justify-between pb-4 border-b border-[#26302C]">
+                  <div className="flex items-center justify-between pb-4 border-b border-linea">
                     <div>
-                      <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
-                        <Users className="w-5 h-5 text-[#3DD68C]" />
+                      <h3 className="text-lg font-bold text-texto flex items-center gap-2">
+                        <Users className="w-5 h-5 text-verde" />
                         Administradores
                       </h3>
-                      <p className="text-xs text-[#73827C]">
-                        Gestores de <strong className="text-[#E7EDEA]">{selectedAcademia.nombre}</strong>
+                      <p className="text-xs text-atenuado">
+                        Gestores de <strong className="text-texto">{selectedAcademia.nombre}</strong>
                       </p>
                     </div>
                     
@@ -998,54 +998,35 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => setShowCreateAdminModal(true)}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all duration-200 flex items-center gap-1 border"
-                      style={{
-                        borderColor: selectedAcademia.color_acento,
-                        color: selectedAcademia.color_acento,
-                        backgroundColor: `${selectedAcademia.color_acento}08`
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${selectedAcademia.color_acento}15`;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = `${selectedAcademia.color_acento}08`;
-                      }}
+                      className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-texto border border-linea hover:bg-linea/40 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5 text-verde" />
                       Agregar
                     </motion.button>
                   </div>
 
                   {loadingAdmins ? (
-                    <div className="flex justify-center py-12">
-                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: selectedAcademia.color_acento }} />
+                    <div className="flex justify-center py-20">
+                      <Loader2 className="w-6 h-6 animate-spin text-verde" />
                     </div>
                   ) : admins.length === 0 ? (
-                    <div className="py-16 text-center">
-                      <p className="text-xs text-[#73827C]">
-                        No hay administradores registrados para esta academia.
-                      </p>
+                    <div className="text-center py-16 border border-dashed border-linea rounded-xl bg-fondo/10">
+                      <p className="text-xs text-atenuado">No hay administradores asignados.</p>
                     </div>
                   ) : (
-                    <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
-                      {admins.map((admin, index) => (
-                        <motion.div
-                          initial={{ opacity: 0, x: 5 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          key={admin.id}
-                          className="p-3.5 rounded-xl border border-[#26302C] bg-[#141A18]/30 flex justify-between items-center"
+                    <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                      {admins.map((admin) => (
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          key={admin.id} 
+                          className="p-4 rounded-xl border border-linea bg-superficie/30 flex justify-between items-center text-xs"
                         >
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-bold text-[#E7EDEA]">
-                              {admin.nombre || 'Sin Nombre'}
-                            </span>
-                            <span className="text-xs text-[#73827C]">
-                              {admin.email}
-                            </span>
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-texto">{admin.nombre}</h4>
+                            <p className="text-atenuado font-mono text-[10px]">{admin.email}</p>
                           </div>
-                          
-                          <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border ${
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${
                             admin.activo 
                               ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400' 
                               : 'bg-red-500/5 border-red-500/10 text-red-400'
@@ -1059,12 +1040,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-                  <div className="p-4 rounded-full bg-[#141A18]/50 border border-[#26302C] animate-float">
-                    <Globe className="w-8 h-8 text-[#73827C]" />
+                  <div className="p-4 rounded-full bg-superficie/50 border border-linea animate-float">
+                    <Globe className="w-8 h-8 text-atenuado" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#E7EDEA]">Selecciona una Academia</h3>
-                    <p className="text-xs text-[#73827C] mt-1.5 max-w-[240px] leading-relaxed">
+                    <h3 className="text-sm font-bold text-texto">Selecciona una Academia</h3>
+                    <p className="text-xs text-atenuado mt-1.5 max-w-[240px] leading-relaxed">
                       Elige una academia de la izquierda para ver y gestionar su equipo de administradores.
                     </p>
                   </div>
@@ -1081,12 +1062,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <div className="lg:col-span-3 flex flex-col gap-3">
               <button
                 onClick={() => setActiveTabLocal('resumen')}
-                className={`w-full p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center gap-3 text-sm font-bold ${
+                className={`w-full p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center gap-3 text-sm font-bold ${
                   activeTabLocal === 'resumen'
-                    ? 'bg-[#141A18]/80 text-[#E7EDEA]'
-                    : 'bg-[#141A18]/20 border-transparent text-[#73827C] hover:bg-[#141A18]/40 hover:text-[#E7EDEA]'
+                    ? 'bg-superficie text-texto shadow-[0_8px_20px_-10px_color-mix(in_srgb,var(--color-verde)_15%,transparent)]'
+                    : 'bg-superficie/20 border-transparent text-atenuado hover:bg-superficie/50 hover:text-texto'
                 }`}
-                style={{ borderColor: activeTabLocal === 'resumen' ? 'var(--color-verde)' : 'transparent' }}
+                style={{ borderColor: activeTabLocal === 'resumen' ? 'var(--color-verde)' : undefined }}
               >
                 <LayoutDashboard className="w-5 h-5" />
                 Resumen
@@ -1094,12 +1075,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               
               <button
                 onClick={() => setActiveTabLocal('cursos')}
-                className={`w-full p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center gap-3 text-sm font-bold ${
+                className={`w-full p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center gap-3 text-sm font-bold ${
                   activeTabLocal === 'cursos'
-                    ? 'bg-[#141A18]/80 text-[#E7EDEA]'
-                    : 'bg-[#141A18]/20 border-transparent text-[#73827C] hover:bg-[#141A18]/40 hover:text-[#E7EDEA]'
+                    ? 'bg-superficie text-texto shadow-[0_8px_20px_-10px_color-mix(in_srgb,var(--color-verde)_15%,transparent)]'
+                    : 'bg-superficie/20 border-transparent text-atenuado hover:bg-superficie/50 hover:text-texto'
                 }`}
-                style={{ borderColor: activeTabLocal === 'cursos' ? 'var(--color-verde)' : 'transparent' }}
+                style={{ borderColor: activeTabLocal === 'cursos' ? 'var(--color-verde)' : undefined }}
               >
                 <BookOpen className="w-5 h-5" />
                 Plan de Estudios
@@ -1137,13 +1118,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   {brand.logo_url ? (
                     <img src={brand.logo_url} alt={brand.nombre} className="w-16 h-16 object-contain rounded-xl" />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-xl">
+                    <div className="w-12 h-12 rounded-xl bg-verde/10 flex items-center justify-center text-verde font-black text-xl">
                       {brand.nombre[0]}
                     </div>
                   )}
                   <div>
-                    <h4 className="font-bold text-xs text-[#E7EDEA]">{brand.nombre}</h4>
-                    <p className="text-[10px] text-[#73827C] mt-1 font-mono">/{tenantSlug}</p>
+                    <h4 className="font-bold text-xs text-texto">{brand.nombre}</h4>
+                    <p className="text-[10px] text-atenuado mt-1 font-mono">/{tenantSlug}</p>
                   </div>
                 </div>
               )}
@@ -1155,29 +1136,29 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 <div className="space-y-6">
                   {/* Tarjetas de estadísticas rápidas */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
-                      <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Cursos Activos</h4>
-                      <p className="text-3xl font-black text-[#E7EDEA]">{cursos.length}</p>
+                    <div className="p-6 rounded-2xl border border-linea bg-superficie/30">
+                      <h4 className="text-xs font-bold text-atenuado uppercase tracking-wider mb-2">Cursos Activos</h4>
+                      <p className="text-3xl font-black text-texto">{cursos.length}</p>
                     </div>
-                    <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
-                      <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Total Módulos</h4>
-                      <p className="text-3xl font-black text-[#E7EDEA]">
+                    <div className="p-6 rounded-2xl border border-linea bg-superficie/30">
+                      <h4 className="text-xs font-bold text-atenuado uppercase tracking-wider mb-2">Total Módulos</h4>
+                      <p className="text-3xl font-black text-texto">
                         {bloques.length || '-'}
                       </p>
                     </div>
-                    <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
-                      <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Estudiantes Estimados</h4>
-                      <p className="text-3xl font-black text-[#E7EDEA]">3</p>
+                    <div className="p-6 rounded-2xl border border-linea bg-superficie/30">
+                      <h4 className="text-xs font-bold text-atenuado uppercase tracking-wider mb-2">Estudiantes Estimados</h4>
+                      <p className="text-3xl font-black text-texto">3</p>
                     </div>
                   </div>
 
                   {/* Panel de Bienvenida */}
-                  <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-4">
-                    <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                  <div className="p-6 rounded-2xl border border-linea bg-superficie/30 space-y-4">
+                    <h3 className="text-lg font-bold text-texto flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
                       ¡Bienvenido al panel de tu academia!
                     </h3>
-                    <p className="text-xs text-[#73827C] leading-relaxed">
+                    <p className="text-xs text-atenuado leading-relaxed">
                       Desde aquí puedes gestionar todo el contenido educativo que tus estudiantes verán al entrar.
                       Utiliza la pestaña de **Plan de Estudios** para subir tus videos y lecturas, u organiza los temas de tus módulos.
                     </p>
@@ -1186,48 +1167,48 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               )}
 
               {activeTabLocal === 'ajustes' && (
-                <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-6">
+                <div className="p-6 rounded-2xl border border-linea bg-superficie/30 space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold text-[#E7EDEA]">Personalizar Marca</h3>
-                    <p className="text-xs text-[#73827C] mt-1">Configura los aspectos visuales e identitarios de tu academia.</p>
+                    <h3 className="text-lg font-bold text-texto">Personalizar Marca</h3>
+                    <p className="text-xs text-atenuado mt-1">Configura los aspectos visuales e identitarios de tu academia.</p>
                   </div>
 
                   <form onSubmit={handleAjustesSubmit} className="space-y-4 max-w-lg">
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Nombre de la Academia</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-atenuado">Nombre de la Academia</label>
                       <input
                         type="text"
                         required
                         value={ajustesNombre}
                         onChange={(e) => setAjustesNombre(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-linea outline-none text-sm bg-fondo/50 text-texto input-glow transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Descripción</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-atenuado">Descripción</label>
                       <textarea
                         value={ajustesDescripcion}
                         onChange={(e) => setAjustesDescripcion(e.target.value)}
                         rows={3}
                         placeholder="Describe de qué trata tu academia..."
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-linea outline-none text-sm bg-fondo/50 text-texto input-glow transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">URL del Logotipo</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-atenuado">URL del Logotipo</label>
                       <input
                         type="url"
                         placeholder="https://ejemplo.com/logo.png"
                         value={ajustesLogo}
                         onChange={(e) => setAjustesLogo(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-linea outline-none text-sm bg-fondo/50 text-texto input-glow transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Color de Acento de la Interfaz</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-atenuado">Color de Acento de la Interfaz</label>
                       <div className="flex items-center gap-3">
                         <input
                            type="color"
@@ -1235,14 +1216,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                           onChange={(e) => setAjustesColor(e.target.value)}
                           className="w-10 h-10 border-0 outline-none rounded-xl cursor-pointer p-0 bg-transparent"
                         />
-                        <span className="font-mono text-xs text-[#73827C] uppercase">{ajustesColor}</span>
+                        <span className="font-mono text-xs text-atenuado uppercase">{ajustesColor}</span>
                       </div>
                     </div>
 
                     <button
                       type="submit"
                       disabled={submittingAjustes}
-                      className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 btn-primary disabled:opacity-50"
+                      className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 btn-primary disabled:opacity-50 cursor-pointer"
                     >
                       {submittingAjustes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Guardar Cambios
@@ -1256,12 +1237,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   {/* Vista Plan de Estudios */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-[#E7EDEA]">Plan de Estudios</h3>
-                      <p className="text-xs text-[#73827C] mt-0.5">Administra los cursos, módulos y clases de tu academia.</p>
+                      <h3 className="text-lg font-bold text-texto">Plan de Estudios</h3>
+                      <p className="text-xs text-atenuado mt-0.5">Administra los cursos, módulos y clases de tu academia.</p>
                     </div>
                     <button
                       onClick={() => openCursoModal()}
-                      className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold bg-verde text-fondo hover:opacity-90 transition-opacity flex items-center gap-1.5 btn-primary cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
                       Nuevo Curso
@@ -1270,17 +1251,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
                   {loadingCursos ? (
                     <div className="flex justify-center py-20">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#3DD68C]" />
+                      <Loader2 className="w-8 h-8 animate-spin text-verde" />
                     </div>
                   ) : cursos.length === 0 ? (
-                    <div className="p-16 text-center border border-dashed border-[#26302C] rounded-2xl">
-                      <p className="text-sm text-[#73827C]">No hay cursos creados en esta academia. Haz clic en 'Nuevo Curso' para empezar.</p>
+                    <div className="p-16 text-center border border-dashed border-linea rounded-2xl">
+                      <p className="text-sm text-atenuado">No hay cursos creados en esta academia. Haz clic en 'Nuevo Curso' para empezar.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                       {/* Sub-columna 1: Lista de Cursos (5 cols) */}
                       <div className="md:col-span-5 space-y-3">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#73827C]">Listado de Cursos</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-atenuado">Listado de Cursos</span>
                         <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
                           {cursos.map(c => {
                             const isSelected = selectedCurso?.id === c.id;
@@ -1290,15 +1271,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                 onClick={() => setSelectedCurso(c)}
                                 className={`p-4 rounded-xl border cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden ${
                                   isSelected
-                                    ? 'bg-[#141A18]/80 border-emerald-500/30'
-                                    : 'bg-[#141A18]/10 border-[#26302C] hover:bg-[#141A18]/30'
+                                    ? 'bg-superficie border-verde/30 shadow-[0_8px_20px_-10px_color-mix(in_srgb,var(--color-verde)_15%,transparent)]'
+                                    : 'bg-superficie/10 border-linea hover:bg-superficie/35'
                                 }`}
                               >
                                 <div className="flex flex-col gap-1 pr-8">
-                                  <h4 className="font-bold text-xs text-[#E7EDEA] line-clamp-1">{c.titulo}</h4>
+                                  <h4 className="font-bold text-xs text-texto line-clamp-1">{c.titulo}</h4>
                                   <span className={`text-[9px] w-max px-1.5 py-0.5 rounded font-bold uppercase border ${
                                     c.publicado
-                                      ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400'
+                                      ? 'bg-verde/5 border-verde/10 text-verde'
                                       : 'bg-yellow-500/5 border-yellow-500/10 text-yellow-400'
                                   }`}>
                                     {c.publicado ? 'Publicado' : 'Borrador'}
@@ -1307,13 +1288,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                 <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                   <button
                                     onClick={(e) => { e.stopPropagation(); openCursoModal(c); }}
-                                    className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-[#E7EDEA] transition-colors"
+                                    className="p-1 rounded bg-linea text-atenuado hover:text-texto transition-colors cursor-pointer"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleCursoDelete(c.id); }}
-                                    className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-red-400 transition-colors"
+                                    className="p-1 rounded bg-linea text-atenuado hover:text-red-400 transition-colors cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -1327,16 +1308,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       {/* Sub-columna 2: Plan Curricular Detallado (7 cols) */}
                       <div className="md:col-span-7">
                         {selectedCurso ? (
-                          <div className="space-y-4 p-5 rounded-2xl border border-[#26302C] bg-[#141A18]/20">
+                          <div className="space-y-4 p-5 rounded-2xl border border-linea bg-superficie/20">
                             {/* Cabecera del Curso */}
-                            <div className="flex justify-between items-start pb-3 border-b border-[#26302C]">
+                            <div className="flex justify-between items-start pb-3 border-b border-linea">
                               <div>
-                                <h4 className="text-sm font-bold text-[#E7EDEA]">{selectedCurso.titulo}</h4>
-                                <p className="text-[11px] text-[#73827C] mt-1 line-clamp-2">{selectedCurso.descripcion || 'Sin descripción.'}</p>
+                                <h4 className="text-sm font-bold text-texto">{selectedCurso.titulo}</h4>
+                                <p className="text-[11px] text-atenuado mt-1 line-clamp-2">{selectedCurso.descripcion || 'Sin descripción.'}</p>
                               </div>
                               <button
                                 onClick={() => openBloqueModal()}
-                                className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-emerald-500/20 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-verde/20 text-verde bg-verde/5 hover:bg-verde/10 transition-all flex items-center gap-1 cursor-pointer"
                               >
                                 <Plus className="w-3.5 h-3.5" />
                                 Módulo
@@ -1346,41 +1327,41 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                             {/* Lista de Módulos (Bloques) */}
                             {loadingBloques ? (
                               <div className="flex justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin text-[#3DD68C]" />
+                                <Loader2 className="w-6 h-6 animate-spin text-verde" />
                               </div>
                             ) : bloques.length === 0 ? (
-                              <p className="text-xs text-[#73827C] text-center py-6">Este curso aún no tiene módulos. Crea uno para agrupar tus lecciones.</p>
+                               <p className="text-xs text-atenuado text-center py-6">Este curso aún no tiene módulos. Crea uno para agrupar tus lecciones.</p>
                             ) : (
                               <div className="space-y-4 max-h-[380px] overflow-y-auto pr-1">
                                 {bloques.map(b => {
                                   const isBloqueSelected = selectedBloque?.id === b.id;
                                   return (
-                                    <div key={b.id} className="border border-[#26302C] rounded-xl bg-[#0b0f0e]/30 overflow-hidden">
+                                    <div key={b.id} className="border border-linea rounded-xl bg-fondo/30 overflow-hidden">
                                       {/* Cabecera Módulo */}
                                       <div
                                         onClick={() => setSelectedBloque(isBloqueSelected ? null : b)}
-                                        className="p-3.5 flex justify-between items-center cursor-pointer hover:bg-[#141A18]/40 transition-colors"
+                                        className="p-3.5 flex justify-between items-center cursor-pointer hover:bg-superficie/40 transition-colors"
                                       >
                                         <div className="flex items-center gap-2">
-                                          {isBloqueSelected ? <ChevronDown className="w-4 h-4 text-[#3DD68C]" /> : <ChevronRight className="w-4 h-4 text-[#73827C]" />}
-                                          <span className="text-xs font-bold text-[#E7EDEA]">{b.titulo}</span>
+                                          {isBloqueSelected ? <ChevronDown className="w-4 h-4 text-verde" /> : <ChevronRight className="w-4 h-4 text-atenuado" />}
+                                          <span className="text-xs font-bold text-texto">{b.titulo}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                           <button
                                             onClick={(e) => { e.stopPropagation(); openPildoraModal(); setSelectedBloque(b); }}
-                                            className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold hover:bg-emerald-500/20 border border-emerald-500/10 flex items-center gap-0.5"
+                                            className="px-2 py-0.5 rounded bg-verde/10 text-verde text-[9px] font-bold hover:bg-verde/20 border border-verde/10 flex items-center gap-0.5 cursor-pointer"
                                           >
                                             <Plus className="w-3 h-3" /> Clase
                                           </button>
                                           <button
                                             onClick={(e) => { e.stopPropagation(); openBloqueModal(b); }}
-                                            className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-[#E7EDEA] transition-colors"
+                                            className="p-1 rounded bg-linea text-atenuado hover:text-texto transition-colors cursor-pointer"
                                           >
                                             <Edit3 className="w-3.5 h-3.5" />
                                           </button>
                                           <button
                                             onClick={(e) => { e.stopPropagation(); handleBloqueDelete(b.id); }}
-                                            className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-red-400 transition-colors"
+                                            className="p-1 rounded bg-linea text-atenuado hover:text-red-400 transition-colors cursor-pointer"
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
                                           </button>
@@ -1389,35 +1370,35 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
                                       {/* Clases del Módulo (Píldoras) */}
                                       {isBloqueSelected && (
-                                        <div className="border-t border-[#26302C] p-3 bg-[#0b0f0e]/10 space-y-2">
+                                        <div className="border-t border-linea p-3 bg-fondo/10 space-y-2">
                                           {loadingPildoras ? (
                                             <div className="flex justify-center py-4">
-                                              <Loader2 className="w-5 h-5 animate-spin text-[#3DD68C]" />
+                                              <Loader2 className="w-5 h-5 animate-spin text-verde" />
                                             </div>
                                           ) : pildoras.length === 0 ? (
-                                            <p className="text-[10px] text-[#73827C] italic pl-6">Sin clases cargadas todavía.</p>
+                                            <p className="text-[10px] text-atenuado italic pl-6">Sin clases cargadas todavía.</p>
                                           ) : (
                                             pildoras.map(p => (
-                                              <div key={p.id} className="pl-6 py-2 pr-2 border-b border-[#26302C]/40 last:border-b-0 flex justify-between items-center group/pildora">
+                                              <div key={p.id} className="pl-6 py-2 pr-2 border-b border-linea/40 last:border-b-0 flex justify-between items-center group/pildora">
                                                 <div className="flex items-center gap-2">
-                                                  {p.tipo === 'video' ? <Video className="w-3.5 h-3.5 text-[#3DD68C]" /> : <FileText className="w-3.5 h-3.5 text-blue-400" />}
+                                                  {p.tipo === 'video' ? <Video className="w-3.5 h-3.5 text-verde" /> : <FileText className="w-3.5 h-3.5 text-blue-400" />}
                                                   <div className="flex flex-col">
-                                                    <span className="text-xs text-[#E7EDEA] font-semibold">{p.titulo}</span>
-                                                    <span className="text-[9px] text-[#73827C] mt-0.5">{p.duracion_min || 0} min | {p.publicada ? 'Pública' : 'Borrador'}</span>
+                                                    <span className="text-xs text-texto font-semibold">{p.titulo}</span>
+                                                    <span className="text-[9px] text-atenuado mt-0.5">{p.duracion_min || 0} min | {p.publicada ? 'Pública' : 'Borrador'}</span>
                                                   </div>
                                                 </div>
                                                 <div className="flex items-center gap-1 opacity-0 group-hover/pildora:opacity-100 transition-opacity">
                                                   <button
                                                     onClick={() => openPildoraModal(p)}
-                                                    className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-[#E7EDEA] transition-colors"
+                                                    className="p-1 rounded bg-linea text-atenuado hover:text-texto transition-colors cursor-pointer"
                                                   >
                                                     <Edit3 className="w-3 h-3" />
                                                   </button>
                                                   <button
                                                     onClick={() => handlePildoraDelete(p.id)}
-                                                    className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-red-400 transition-colors"
+                                                    className="p-1 rounded bg-linea text-atenuado hover:text-red-400 transition-colors cursor-pointer"
                                                   >
-                                                    <Trash2 className="w-3 h-3" />
+                                                    <Trash2 className="w-3.5 h-3.5" />
                                                   </button>
                                                 </div>
                                               </div>
@@ -1432,11 +1413,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                             )}
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center py-20 text-center gap-3 border border-dashed border-[#26302C] rounded-2xl bg-[#141A18]/10">
-                            <BookOpen className="w-8 h-8 text-[#73827C] animate-float" />
+                          <div className="flex flex-col items-center justify-center py-20 text-center gap-3 border border-dashed border-linea rounded-2xl bg-superficie/10">
+                            <BookOpen className="w-8 h-8 text-atenuado animate-float" />
                             <div>
-                              <h4 className="text-xs font-bold text-[#E7EDEA]">Estructura de Contenidos</h4>
-                              <p className="text-[10px] text-[#73827C] mt-1 max-w-[200px]">Selecciona un curso a la izquierda para administrar sus módulos y lecciones.</p>
+                      <h4 className="text-xs font-bold text-texto">Estructura de Contenidos</h4>
+                              <p className="text-[10px] text-atenuado mt-1 max-w-[200px]">Selecciona un curso a la izquierda para administrar sus módulos y lecciones.</p>
                             </div>
                           </div>
                         )}
@@ -1451,32 +1432,32 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   {/* Vista Finanzas */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-[#E7EDEA]">Dashboard Financiero</h3>
-                      <p className="text-xs text-[#73827C] mt-0.5">Control de ingresos por Hotmart, registro de costos y ganancia neta.</p>
+                      <h3 className="text-lg font-bold text-texto">Dashboard Financiero</h3>
+                      <p className="text-xs text-atenuado mt-0.5">Control de ingresos por Hotmart, registro de costos y ganancia neta.</p>
                     </div>
                   </div>
 
                   {loadingFinanzas ? (
                     <div className="flex justify-center py-20">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#3DD68C]" />
+                      <Loader2 className="w-8 h-8 animate-spin text-verde" />
                     </div>
                   ) : !finanzas ? (
-                    <p className="text-xs text-[#73827C]">Error al cargar datos financieros.</p>
+                    <p className="text-xs text-atenuado">Error al cargar datos financieros.</p>
                   ) : (
                     <div className="space-y-8">
                       {/* Tarjetas métricas */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-6 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism-hover transition-all duration-300">
-                          <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Ingresos Totales</h4>
-                          <p className="text-2xl font-black text-emerald-400">+${finanzas.ingresos_totales.toFixed(2)} USD</p>
+                        <div className="p-6 rounded-2xl border border-linea/60 bg-superficie/30 glassmorphism-hover transition-all duration-300">
+                          <h4 className="text-xs font-bold text-atenuado uppercase tracking-wider mb-2">Ingresos Totales</h4>
+                          <p className="text-2xl font-black text-verde">+${finanzas.ingresos_totales.toFixed(2)} USD</p>
                         </div>
-                        <div className="p-6 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism-hover transition-all duration-300">
-                          <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Costos Totales</h4>
+                        <div className="p-6 rounded-2xl border border-linea/60 bg-superficie/30 glassmorphism-hover transition-all duration-300">
+                          <h4 className="text-xs font-bold text-atenuado uppercase tracking-wider mb-2">Costos Totales</h4>
                           <p className="text-2xl font-black text-red-400">-${finanzas.costos_totales.toFixed(2)} USD</p>
                         </div>
-                        <div className="p-6 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism-hover transition-all duration-300">
-                          <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Ganancia Neta</h4>
-                          <p className={`text-2xl font-black ${finanzas.beneficio_neto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <div className="p-6 rounded-2xl border border-linea/60 bg-superficie/30 glassmorphism-hover transition-all duration-300">
+                          <h4 className="text-xs font-bold text-atenuado uppercase tracking-wider mb-2">Ganancia Neta</h4>
+                          <p className={`text-2xl font-black ${finanzas.beneficio_neto >= 0 ? 'text-verde' : 'text-red-400'}`}>
                             {finanzas.beneficio_neto >= 0 ? '+' : ''}${finanzas.beneficio_neto.toFixed(2)} USD
                           </p>
                         </div>
@@ -1484,24 +1465,24 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Registrar Gasto (5 cols) */}
-                        <div className="lg:col-span-5 p-5 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism space-y-4">
-                          <h4 className="text-xs font-bold text-[#E6ECE9] uppercase tracking-wider">Registrar Gasto Operativo</h4>
+                        <div className="lg:col-span-5 p-5 rounded-2xl border border-linea/60 bg-superficie/30 glassmorphism space-y-4">
+                          <h4 className="text-xs font-bold text-texto uppercase tracking-wider">Registrar Gasto Operativo</h4>
                           
                           <form onSubmit={handleCostoSubmit} className="space-y-4">
                             <div>
-                              <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Descripción</label>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-atenuado">Descripción</label>
                               <input
                                 type="text"
                                 required
                                 placeholder="Ej. Servidores, publicidad..."
                                 value={costoDescripcion}
                                 onChange={(e) => setCostoDescripcion(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
+                                className="w-full px-4 py-2.5 rounded-xl border border-linea outline-none text-sm bg-fondo/50 text-texto input-glow transition-all duration-200"
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">Monto (USD)</label>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-atenuado">Monto (USD)</label>
                               <input
                                 type="number"
                                 step="0.01"
@@ -1510,7 +1491,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                 placeholder="0.00"
                                 value={costoMonto}
                                 onChange={(e) => setCostoMonto(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
+                                className="w-full px-4 py-2.5 rounded-xl border border-linea outline-none text-sm bg-fondo/50 text-texto input-glow transition-all duration-200"
                               />
                             </div>
 
@@ -1526,39 +1507,39 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         </div>
 
                         {/* Listado de transacciones (7 cols) */}
-                        <div className="lg:col-span-7 p-5 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism space-y-4">
-                          <h4 className="text-xs font-bold text-[#E7EDEA] uppercase tracking-wider">Historial de Transacciones</h4>
+                        <div className="lg:col-span-7 p-5 rounded-2xl border border-linea/60 bg-superficie/30 glassmorphism space-y-4">
+                          <h4 className="text-xs font-bold text-texto uppercase tracking-wider">Historial de Transacciones</h4>
                           
                           {finanzas.transacciones.length === 0 ? (
-                            <p className="text-xs text-[#73827C] italic">Sin transacciones registradas.</p>
+                            <p className="text-xs text-atenuado italic">Sin transacciones registradas.</p>
                           ) : (
                             <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
                               {finanzas.transacciones.map((t) => (
-                                <div key={t.id} className="flex justify-between items-center p-3 rounded-xl border border-[#26302C]/40 bg-[#0B0F0E]/30 text-xs">
+                                <div key={t.id} className="flex justify-between items-center p-3 rounded-xl border border-linea/45 bg-fondo/35 text-xs">
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-1.5">
                                       <span className={`px-1.5 py-0.5 text-[8px] font-bold uppercase rounded ${
                                         t.tipo === 'venta' 
-                                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/10' 
+                                          ? 'bg-verde/10 text-verde border border-verde/10' 
                                           : 'bg-red-500/10 text-red-400 border border-red-500/10'
                                       }`}>
                                         {t.tipo}
                                       </span>
-                                      <span className="font-bold text-[#E7EDEA]">{t.detalle}</span>
+                                      <span className="font-bold text-texto">{t.detalle}</span>
                                     </div>
-                                    <span className="text-[9px] text-[#73827C] block font-mono">
+                                    <span className="text-[9px] text-atenuado block font-mono">
                                       {new Date(t.fecha).toLocaleDateString()} {new Date(t.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                   </div>
                                   
                                   <div className="flex items-center gap-3">
-                                    <span className={`font-mono font-black ${t.tipo === 'venta' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`font-mono font-black ${t.tipo === 'venta' ? 'text-verde' : 'text-red-400'}`}>
                                       {t.tipo === 'venta' ? '+' : '-'}${t.monto.toFixed(2)}
                                     </span>
                                     {t.tipo === 'costo' && (
                                       <button
                                         onClick={() => handleCostoDelete(t.id)}
-                                        className="p-1 rounded bg-[#26302C] text-[#73827C] hover:text-red-400 transition-colors"
+                                        className="p-1 rounded bg-linea text-atenuado hover:text-red-400 transition-colors"
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
                                       </button>
@@ -1578,7 +1559,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           </div>
         ) : isMembershipBlocked ? (
           /* PANTALLA DE PAYWALL PREMIUM */
-          <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto gap-6 border border-[#26302C] bg-[#141A18]/20 rounded-3xl p-8 relative overflow-hidden w-full">
+          <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto gap-6 border border-linea bg-superficie/20 rounded-3xl p-8 relative overflow-hidden w-full">
             <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full blur-[80px] opacity-10 pointer-events-none"
               style={{ backgroundColor: 'var(--color-verde)' }}
             />
@@ -1588,23 +1569,23 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             </div>
 
             <div className="space-y-2 relative z-10">
-              <h2 className="text-xl font-black text-[#E7EDEA]">Acceso Premium Requerido</h2>
-              <p className="text-xs text-[#73827C] leading-relaxed">
-                No tienes una membresía activa en <span className="font-bold text-[#E7EDEA]">{brand?.nombre || 'esta academia'}</span>.
+              <h2 className="text-xl font-black text-texto">Acceso Premium Requerido</h2>
+              <p className="text-xs text-atenuado leading-relaxed">
+                No tienes una membresía activa en <span className="font-bold text-texto">{brand?.nombre || 'esta academia'}</span>.
                 Adquiere tu plan para desbloquear todos los cursos, lecciones interactivas y ver tu posición en el ranking de estudiantes.
               </p>
             </div>
 
             {/* Simulación del Webhook de Hotmart */}
-            <div className="w-full p-4 rounded-2xl border border-[#26302C] bg-[#0b0f0e]/50 text-left space-y-3 relative z-10">
-              <span className="text-[9px] uppercase font-mono text-[#73827C] font-bold">Simulador de Pago (Entorno de Pruebas)</span>
+            <div className="w-full p-4 rounded-2xl border border-linea bg-fondo/50 text-left space-y-3 relative z-10">
+              <span className="text-[9px] uppercase font-mono text-atenuado font-bold">Simulador de Pago (Entorno de Pruebas)</span>
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[#73827C]">CORREO A ENVIAR AL WEBHOOK</label>
+                <label className="block text-[9px] font-bold text-atenuado">CORREO A ENVIAR AL WEBHOOK</label>
                 <input
                   type="text"
                   readOnly
                   value={user.email}
-                  className="w-full px-3.5 py-2 rounded-lg border border-[#26302C] outline-none text-xs bg-[#141A18]/50 text-[#73827C]"
+                  className="w-full px-3.5 py-2 rounded-lg border border-linea outline-none text-xs bg-superficie/50 text-atenuado"
                 />
               </div>
               
@@ -1640,7 +1621,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   }
                 }}
                 disabled={submittingProgreso}
-                className="w-full py-2.5 rounded-xl text-xs font-black bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 rounded-xl text-xs font-black bg-verde text-fondo hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer btn-primary"
               >
                 {submittingProgreso ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Simular Compra con Hotmart 🚀'}
               </button>
@@ -1656,9 +1637,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               {!selectedCurso ? (
                 // Vista: Seleccionar Curso
                 <div className="space-y-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#73827C]">Mis Cursos Disponibles</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-atenuado">Mis Cursos Disponibles</span>
                   {cursos.length === 0 ? (
-                    <div className="p-8 text-center border border-[#26302C] rounded-2xl bg-[#141A18]/10 text-xs text-[#73827C]">
+                    <div className="p-8 text-center border border-linea rounded-2xl bg-superficie/10 text-xs text-atenuado">
                       No hay cursos publicados todavía en esta academia.
                     </div>
                   ) : (
@@ -1667,10 +1648,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         <div
                           key={c.id}
                           onClick={() => setSelectedCurso(c)}
-                          className="p-4 rounded-xl border border-[#26302C] bg-[#141A18]/20 hover:bg-[#141A18]/50 hover:border-emerald-500/20 cursor-pointer transition-all flex flex-col gap-2 group"
+                          className="p-4 rounded-xl border border-linea bg-superficie/20 hover:bg-superficie/50 hover:border-verde/20 cursor-pointer transition-all flex flex-col gap-2 group"
                         >
-                          <h4 className="font-bold text-xs text-[#E7EDEA] group-hover:text-emerald-400 transition-colors">{c.titulo}</h4>
-                          {c.descripcion && <p className="text-[10px] text-[#73827C] line-clamp-2 leading-relaxed">{c.descripcion}</p>}
+                          <h4 className="font-bold text-xs text-texto group-hover:text-verde transition-colors">{c.titulo}</h4>
+                          {c.descripcion && <p className="text-[10px] text-atenuado line-clamp-2 leading-relaxed">{c.descripcion}</p>}
                         </div>
                       ))}
                     </div>
@@ -1682,31 +1663,31 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => setSelectedCurso(null)}
-                      className="text-[10px] font-bold text-emerald-400 hover:underline cursor-pointer"
+                      className="text-[10px] font-bold text-verde hover:underline cursor-pointer"
                     >
                       ← Volver a Cursos
                     </button>
-                    <span className="text-[9px] uppercase font-mono text-[#73827C]">Temario</span>
+                    <span className="text-[9px] uppercase font-mono text-atenuado">Temario</span>
                   </div>
 
                   {/* Detalle del Curso Activo */}
-                  <div className="p-4 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-3">
-                    <h3 className="font-black text-xs text-[#E7EDEA]">{selectedCurso.titulo}</h3>
+                  <div className="p-4 rounded-2xl border border-linea bg-superficie/35 space-y-3">
+                    <h3 className="font-black text-xs text-texto">{selectedCurso.titulo}</h3>
                     
                     {/* Barra de progreso global del curso */}
                     {pildoras.length > 0 && (
                       <div className="space-y-1.5 pt-1">
-                        <div className="flex justify-between text-[9px] font-mono text-[#73827C]">
+                        <div className="flex justify-between text-[9px] font-mono text-atenuado">
                           <span>Progreso</span>
-                          <span className="font-bold text-emerald-400">
+                          <span className="font-bold text-verde">
                             {pildoras.filter(p => isPildoraCompletada(p.id)).length} de {pildoras.length} ({
                               Math.round((pildoras.filter(p => isPildoraCompletada(p.id)).length / pildoras.length) * 100)
                             }%)
                           </span>
                         </div>
-                        <div className="w-full h-1.5 bg-[#0b0f0e] rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-fondo rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-[#3DD68C] rounded-full transition-all duration-500"
+                            className="h-full bg-verde rounded-full transition-all duration-500"
                             style={{
                               width: `${(pildoras.filter(p => isPildoraCompletada(p.id)).length / pildoras.length) * 100}%`
                             }}
@@ -1719,26 +1700,26 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   {/* Lista de Módulos y Clases */}
                   {loadingBloques ? (
                     <div className="flex justify-center py-10">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#3DD68C]" />
+                      <Loader2 className="w-6 h-6 animate-spin text-verde" />
                     </div>
                   ) : bloques.length === 0 ? (
-                    <p className="text-xs text-[#73827C] text-center">Este curso no tiene contenidos estructurados por ahora.</p>
+                    <p className="text-xs text-atenuado text-center">Este curso no tiene contenidos estructurados por ahora.</p>
                   ) : (
                     <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
                       {bloques.map(b => {
                         const blockPills = pildoras.filter(p => p.bloque_id === b.id);
                         return (
-                          <div key={b.id} className="border border-[#26302C] rounded-xl bg-[#0b0f0e]/20 overflow-hidden">
+                          <div key={b.id} className="border border-linea rounded-xl bg-fondo/20 overflow-hidden">
                             {/* Cabecera Módulo */}
-                            <div className="p-3 bg-[#141A18]/40 border-b border-[#26302C]/30 flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-[#E7EDEA] line-clamp-1">{b.titulo}</span>
-                              <span className="text-[9px] font-mono text-[#73827C] px-1.5 py-0.5 rounded bg-[#0b0f0e]">{blockPills.length} clases</span>
+                            <div className="p-3 bg-superficie/40 border-b border-linea/30 flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-texto line-clamp-1">{b.titulo}</span>
+                              <span className="text-[9px] font-mono text-atenuado px-1.5 py-0.5 rounded bg-fondo">{blockPills.length} clases</span>
                             </div>
                             
                             {/* Clases */}
-                            <div className="p-2 space-y-1 bg-[#0b0f0e]/10">
+                            <div className="p-2 space-y-1 bg-fondo/10">
                               {blockPills.length === 0 ? (
-                                <p className="text-[9px] text-[#73827C] italic p-2">Sin clases publicadas.</p>
+                                <p className="text-[9px] text-atenuado italic p-2">Sin clases publicadas.</p>
                               ) : (
                                 blockPills.map(p => {
                                   const isSelected = selectedPildora?.id === p.id;
@@ -1747,10 +1728,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                     <div
                                       key={p.id}
                                       onClick={() => setSelectedPildora(p)}
-                                      className={`p-2.5 rounded-lg cursor-pointer transition-all flex items-center justify-between group/pill ${
+                                      className={`p-2.5 rounded-lg cursor-pointer transition-all flex items-center justify-between group/pill border ${
                                         isSelected 
-                                          ? 'bg-emerald-500/10 border border-emerald-500/20' 
-                                          : 'hover:bg-[#141A18]/40 border border-transparent'
+                                          ? 'bg-verde/10 border-verde/20' 
+                                          : 'hover:bg-superficie/40 border-transparent'
                                       }`}
                                     >
                                       <div className="flex items-center gap-2 pr-2">
@@ -1762,16 +1743,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                             handleToggleProgreso(p.id, completed);
                                           }}
                                           disabled={submittingProgreso}
-                                          className="w-3.5 h-3.5 rounded text-[#3DD68C] bg-[#0b0f0e] border-[#26302C] focus:ring-0 cursor-pointer disabled:opacity-50"
+                                          className="w-3.5 h-3.5 rounded text-verde bg-fondo border-linea focus:ring-0 cursor-pointer disabled:opacity-50"
                                         />
                                         <span className={`text-[11px] font-medium line-clamp-1 transition-colors ${
-                                          isSelected ? 'text-emerald-400 font-bold' : 'text-[#E7EDEA]'
+                                          isSelected ? 'text-verde font-bold' : 'text-texto'
                                         }`}>
                                           {p.titulo}
                                         </span>
                                       </div>
                                       
-                                      <span className="text-[9px] text-[#73827C] font-mono whitespace-nowrap">
+                                      <span className="text-[9px] text-atenuado font-mono whitespace-nowrap">
                                         {p.duracion_min || 0}m
                                       </span>
                                     </div>
@@ -1787,36 +1768,36 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </div>
               )}
               {/* TABLA DE CLASIFICACIÓN (LEADERBOARD) */}
-              <div className="p-4 rounded-2xl border border-[#26302C] bg-[#141A18]/15 mt-4 space-y-3">
-                <div className="flex items-center gap-1.5 pb-2 border-b border-[#26302C]/40">
-                  <Sparkles className="w-4 h-4 text-[#3DD68C] animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#E7EDEA]">Ranking de la Academia</span>
+              <div className="p-4 rounded-2xl border border-linea bg-superficie/15 mt-4 space-y-3">
+                <div className="flex items-center gap-1.5 pb-2 border-b border-linea/40">
+                  <Sparkles className="w-4 h-4 text-verde animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-texto">Ranking de la Academia</span>
                 </div>
                 
                 {loadingLeaderboard ? (
                   <div className="flex justify-center py-4">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#3DD68C]" />
+                    <Loader2 className="w-4 h-4 animate-spin text-verde" />
                   </div>
                 ) : leaderboard.length === 0 ? (
-                  <p className="text-[9px] text-[#73827C] italic text-center py-2">Sin actividad registrada aún.</p>
+                  <p className="text-[9px] text-atenuado italic text-center py-2">Sin actividad registrada aún.</p>
                 ) : (
                   <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                     {leaderboard.map((entry, idx) => {
                       const isTop3 = idx < 3;
                       const badgeColors = ['bg-yellow-500/10 text-yellow-400 border-yellow-500/20', 'bg-slate-400/10 text-slate-300 border-slate-400/20', 'bg-amber-700/10 text-amber-500 border-amber-700/20'];
                       return (
-                        <div key={idx} className="flex justify-between items-center text-[10px] py-1 border-b border-[#26302C]/10 last:border-b-0">
+                        <div key={idx} className="flex justify-between items-center text-[10px] py-1 border-b border-linea/10 last:border-b-0">
                           <div className="flex items-center gap-2">
                             <span className={`w-4 h-4 rounded font-mono font-bold flex items-center justify-center border text-[8px] ${
-                              isTop3 ? badgeColors[idx] : 'bg-[#0b0f0e] text-[#73827C] border-[#26302C]'
+                              isTop3 ? badgeColors[idx] : 'bg-fondo text-atenuado border-linea'
                             }`}>
                               {idx + 1}
                             </span>
-                            <span className="font-semibold text-[#E7EDEA] line-clamp-1">{entry.nombre}</span>
+                            <span className="font-semibold text-texto line-clamp-1">{entry.nombre}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-right font-mono">
-                            <span className="text-[#73827C]">Nivel {entry.nivel}</span>
-                            <span className="font-bold text-[#3DD68C]">{entry.puntos} pts</span>
+                            <span className="text-atenuado">Nivel {entry.nivel}</span>
+                            <span className="font-bold text-verde">{entry.puntos} pts</span>
                           </div>
                         </div>
                       );
@@ -1829,19 +1810,19 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             {/* COLUMNA DERECHA: REPRODUCTOR Y CONTENIDO (8 cols) */}
             <div className="lg:col-span-8">
               {selectedPildora ? (
-                <div className="p-6 rounded-3xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism space-y-6">
+                <div className="p-6 rounded-3xl border border-linea/60 bg-superficie/30 glassmorphism space-y-6">
                   {/* Cabecera Lección */}
-                  <div className="flex justify-between items-start gap-4 pb-4 border-b border-[#26302C]">
+                  <div className="flex justify-between items-start gap-4 pb-4 border-b border-linea">
                     <div>
                       <div className="flex items-center gap-1.5">
                         {selectedPildora.tipo === 'video' ? (
-                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">🎥 Video</span>
+                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase rounded bg-verde/10 text-verde border border-verde/10">🎥 Video</span>
                         ) : (
                           <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">📝 Lectura</span>
                         )}
-                        <span className="text-[9px] font-mono text-[#73827C]">{selectedPildora.duracion_min || 0} minutos de duración</span>
+                        <span className="text-[9px] font-mono text-atenuado">{selectedPildora.duracion_min || 0} minutos de duración</span>
                       </div>
-                      <h2 className="text-lg font-black text-[#E6ECE9] mt-1.5">{selectedPildora.titulo}</h2>
+                      <h2 className="text-lg font-black text-texto mt-1.5">{selectedPildora.titulo}</h2>
                     </div>
 
                     {/* Botón de marcar completada arriba a la derecha */}
@@ -1850,7 +1831,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       disabled={submittingProgreso}
                       className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer border ${
                         isPildoraCompletada(selectedPildora.id)
-                          ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+                          ? 'bg-verde/5 border-verde/30 text-verde hover:bg-verde/10'
                           : 'btn-primary'
                       }`}
                     >
