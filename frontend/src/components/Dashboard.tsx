@@ -1829,7 +1829,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             {/* COLUMNA DERECHA: REPRODUCTOR Y CONTENIDO (8 cols) */}
             <div className="lg:col-span-8">
               {selectedPildora ? (
-                <div className="p-6 rounded-3xl border border-[#26302C] bg-[#141A18]/30 space-y-6">
+                <div className="p-6 rounded-3xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism space-y-6">
                   {/* Cabecera Lección */}
                   <div className="flex justify-between items-start gap-4 pb-4 border-b border-[#26302C]">
                     <div>
@@ -1841,17 +1841,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         )}
                         <span className="text-[9px] font-mono text-[#73827C]">{selectedPildora.duracion_min || 0} minutos de duración</span>
                       </div>
-                      <h2 className="text-lg font-black text-[#E7EDEA] mt-1.5">{selectedPildora.titulo}</h2>
+                      <h2 className="text-lg font-black text-[#E6ECE9] mt-1.5">{selectedPildora.titulo}</h2>
                     </div>
 
                     {/* Botón de marcar completada arriba a la derecha */}
                     <button
                       onClick={() => handleToggleProgreso(selectedPildora.id, isPildoraCompletada(selectedPildora.id))}
                       disabled={submittingProgreso}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer border ${
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer border ${
                         isPildoraCompletada(selectedPildora.id)
                           ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
-                          : 'bg-[#3DD68C] text-[#0B0F0E] border-transparent hover:opacity-90'
+                          : 'btn-primary'
                       }`}
                     >
                       {submittingProgreso ? (
@@ -1898,7 +1898,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     <BookOpen className="w-8 h-8 text-[#73827C]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#E7EDEA]">
+                    <h3 className="text-sm font-bold text-[#E6ECE9]">
                       {selectedCurso ? 'Comienza tu Lección' : 'Selecciona un Curso'}
                     </h3>
                     <p className="text-xs text-[#73827C] mt-1.5 max-w-[280px] leading-relaxed">
@@ -1915,15 +1915,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         )}
 
         {/* METADATOS DEL SERVIDOR */}
-        <div className="p-5 rounded-2xl border border-sky-500/10 bg-sky-500/5 flex gap-4 items-start">
+        <div className="p-5 rounded-2xl border border-sky-500/20 bg-sky-500/5 flex gap-4 items-start glassmorphism relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-24 h-24 rounded-full blur-2xl opacity-10 bg-sky-500 pointer-events-none" />
           <div className="p-2.5 rounded-xl bg-sky-500/10 flex-shrink-0 text-sky-400">
             <Database className="w-5 h-5" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 relative z-10">
             <h4 className="text-sm font-bold text-sky-400">
               Estado de la Plataforma
             </h4>
-            <p className="text-xs text-[#E7EDEA] leading-relaxed">
+            <p className="text-xs text-[#E6ECE9] leading-relaxed">
               {user.rol === 'super_admin' 
                 ? 'Conectado a Neon PostgreSQL en modo agrupado (PgBouncer). Los túneles de seguridad JWT y políticas multi-tenant se encuentran validados y activos.' 
                 : 'La autenticación mediante JWT ha sido validada de extremo a extremo para tu rol.'}
