@@ -1466,15 +1466,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     <div className="space-y-8">
                       {/* Tarjetas métricas */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
+                        <div className="p-6 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism-hover transition-all duration-300">
                           <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Ingresos Totales</h4>
                           <p className="text-2xl font-black text-emerald-400">+${finanzas.ingresos_totales.toFixed(2)} USD</p>
                         </div>
-                        <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
+                        <div className="p-6 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism-hover transition-all duration-300">
                           <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Costos Totales</h4>
                           <p className="text-2xl font-black text-red-400">-${finanzas.costos_totales.toFixed(2)} USD</p>
                         </div>
-                        <div className="p-6 rounded-2xl border border-[#26302C] bg-[#141A18]/30">
+                        <div className="p-6 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism-hover transition-all duration-300">
                           <h4 className="text-xs font-bold text-[#73827C] uppercase tracking-wider mb-2">Ganancia Neta</h4>
                           <p className={`text-2xl font-black ${finanzas.beneficio_neto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             {finanzas.beneficio_neto >= 0 ? '+' : ''}${finanzas.beneficio_neto.toFixed(2)} USD
@@ -1484,8 +1484,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
 
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Registrar Gasto (5 cols) */}
-                        <div className="lg:col-span-5 p-5 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-4">
-                          <h4 className="text-xs font-bold text-[#E7EDEA] uppercase tracking-wider">Registrar Gasto Operativo</h4>
+                        <div className="lg:col-span-5 p-5 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism space-y-4">
+                          <h4 className="text-xs font-bold text-[#E6ECE9] uppercase tracking-wider">Registrar Gasto Operativo</h4>
                           
                           <form onSubmit={handleCostoSubmit} className="space-y-4">
                             <div>
@@ -1496,7 +1496,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                 placeholder="Ej. Servidores, publicidad..."
                                 value={costoDescripcion}
                                 onChange={(e) => setCostoDescripcion(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                               />
                             </div>
                             
@@ -1510,14 +1510,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                                 placeholder="0.00"
                                 value={costoMonto}
                                 onChange={(e) => setCostoMonto(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all"
+                                className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                               />
                             </div>
 
                             <button
                               type="submit"
                               disabled={creatingCosto}
-                              className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                              className="w-full py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer btn-primary disabled:opacity-50"
                             >
                               {creatingCosto && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                               Registrar Costo
@@ -1526,7 +1526,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         </div>
 
                         {/* Listado de transacciones (7 cols) */}
-                        <div className="lg:col-span-7 p-5 rounded-2xl border border-[#26302C] bg-[#141A18]/30 space-y-4">
+                        <div className="lg:col-span-7 p-5 rounded-2xl border border-[#26302C]/60 bg-[#141A18]/30 glassmorphism space-y-4">
                           <h4 className="text-xs font-bold text-[#E7EDEA] uppercase tracking-wider">Historial de Transacciones</h4>
                           
                           {finanzas.transacciones.length === 0 ? (
