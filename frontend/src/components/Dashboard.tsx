@@ -2252,7 +2252,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: 'spring', duration: 0.4 }}
-              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C]/60 glassmorphism relative overflow-hidden shadow-2xl"
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
                 <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
@@ -2281,7 +2281,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     placeholder="Ej. Apuesta con cabeza"
                     value={nombre}
                     onChange={(e) => handleNombreChange(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2295,7 +2295,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     placeholder="ej-apuesta-con-cabeza"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2308,7 +2308,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
                     rows={2}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                   />
                 </div>
 
@@ -2322,7 +2322,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       placeholder="https://..."
                       value={logoUrl}
                       onChange={(e) => setLogoUrl(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -2337,7 +2337,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         className="w-9 h-9 border-0 outline-none rounded-xl cursor-pointer p-0"
                         style={{ backgroundColor: 'transparent' }}
                       />
-                      <span className="text-[10px] font-mono text-[#E7EDEA]">{colorAcento}</span>
+                      <span className="text-[10px] font-mono text-[#E6ECE9]">{colorAcento}</span>
                     </div>
                   </div>
                 </div>
@@ -2346,14 +2346,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <button
                     type="button"
                     onClick={() => setShowCreateAcademiaModal(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#0B0F0E]/40 text-[#E6ECE9] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={creatingAcademia}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#3DD68C] text-[#0B0F0E] hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-1.5"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer btn-primary disabled:opacity-50 transition-all duration-300 flex items-center gap-1.5"
                   >
                     {creatingAcademia && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Crear Academia
@@ -2377,11 +2377,11 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: 'spring', duration: 0.4 }}
-              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C] bg-[#141A18]"
+              className="w-full max-w-md p-6 rounded-3xl border border-[#26302C]/60 glassmorphism relative overflow-hidden shadow-2xl"
             >
               <div className="flex justify-between items-center pb-4 border-b border-[#26302C]">
                 <div>
-                  <h3 className="text-lg font-bold text-[#E7EDEA] flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-[#E6ECE9] flex items-center gap-2">
                     <Plus className="w-5 h-5" style={{ color: selectedAcademia.color_acento }} />
                     Nuevo Administrador
                   </h3>
@@ -2392,7 +2392,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 
                 <button 
                   onClick={() => setShowCreateAdminModal(false)}
-                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E7EDEA] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
+                  className="p-1 rounded-lg text-[#73827C] hover:text-[#E6ECE9] hover:bg-[#26302C]/30 transition-colors cursor-pointer"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2413,7 +2413,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       placeholder="Ej. Juan Pérez"
                       value={adminNombre}
                       onChange={(e) => setAdminNombre(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -2430,7 +2430,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       placeholder="juan.perez@ejemplo.com"
                       value={adminEmail}
                       onChange={(e) => setAdminEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -2447,7 +2447,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       placeholder="Mínimo 6 caracteres"
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#0B0F0E]/50 text-[#E7EDEA] focus:ring-2 focus:ring-[#3DD68C]/15 focus:border-[#3DD68C] transition-all duration-200"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -2456,19 +2456,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <button
                     type="button"
                     onClick={() => setShowCreateAdminModal(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#0B0F0E]/40 text-[#E7EDEA] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer bg-[#0B0F0E]/40 text-[#E6ECE9] border border-[#26302C] hover:bg-[#26302C]/40 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={creatingAdmin}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-colors flex items-center gap-1.5"
-                    style={{
-                      backgroundColor: selectedAcademia.color_acento,
-                      color: 'var(--color-fondo)',
-                      opacity: creatingAdmin ? 0.7 : 1
-                    }}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer btn-primary disabled:opacity-50 transition-all duration-300 flex items-center gap-1.5"
                   >
                     {creatingAdmin && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Crear Administrador
