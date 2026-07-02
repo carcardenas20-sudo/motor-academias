@@ -87,6 +87,15 @@ class CertificadoResponse(BaseModel):
     fecha_emision: datetime
     fecha_emision_formateada: str
 
+class RespuestaPrueba(BaseModel):
+    respuestas: dict[str, int]
+
+class ResultadoEvaluacion(BaseModel):
+    aprobado: bool
+    nota: float
+    puntos_ganados: int
+    feedback: dict[str, bool]
+
 # Helper functions to convert DB row to Response Model
 def map_row_to_curso(row) -> CursoResponse:
     return CursoResponse(
@@ -111,14 +120,25 @@ def map_row_to_bloque(row) -> BloqueResponse:
         actualizado_en=row["actualizado_en"]
     )
 
-def map_row_to_pildora(row) -> PildoraResponse:
+def map_row_to_pildora(row, strip_answers: bool = False) -> PildoraResponse:
+    contenido = row["contenido"]
+    if strip_answers and row["tipo"] == "prueba" and contenido:
+        try:
+            import json
+            data = json.loads(contenido)
+            if isinstance(data, dict) and "preguntas" in data:
+                for q in data["preguntas"]:
+                    q.pop("respuesta_correcta", None)
+                contenido = json.dumps(data)
+        except Exception:
+            pass
     return PildoraResponse(
         id=str(row["id"]),
         academia_id=str(row["academia_id"]),
         bloque_id=str(row["bloque_id"]),
         titulo=row["titulo"],
         tipo=row["tipo"],
-        contenido=row["contenido"],
+        contenido=contenido,
         duracion_min=row["duracion_min"],
         orden=row["orden"],
         publicada=row["publicada"],
@@ -385,6 +405,7 @@ async def list_pildoras(
                 "FROM pildoras WHERE bloque_id = $1 AND academia_id = $2 ORDER BY orden ASC, creado_en DESC",
                 bloque_uuid, academia_uuid
             )
+            return [map_row_to_pildora(r, strip_answers=False) for r in rows]
         else:
             # Estudiantes solo ven pildoras publicadas
             rows = await conn.fetch(
@@ -392,7 +413,7 @@ async def list_pildoras(
                 "FROM pildoras WHERE bloque_id = $1 AND academia_id = $2 AND publicada = true ORDER BY orden ASC, creado_en DESC",
                 bloque_uuid, academia_uuid
             )
-    return [map_row_to_pildora(r) for r in rows]
+            return [map_row_to_pildora(r, strip_answers=True) for r in rows]
 
 @router.post("/bloques/{bloque_id}/pildoras", response_model=PildoraResponse, status_code=status.HTTP_201_CREATED)
 async def create_pildora(
@@ -673,3 +694,107 @@ async def get_certificado(
         fecha_emision=fecha_emision,
         fecha_emision_formateada=fecha_emision_formateada
     )
+
+
+@router.post("/pildoras/{pildora_id}/evaluar", response_model=ResultadoEvaluacion)
+async def evaluar_pildora(
+    academia_id: str,
+    pildora_id: str,
+    data: RespuestaPrueba,
+    current_user: TokenData = Depends(get_current_user)
+):
+    import json
+    academia_uuid = uuid.UUID(academia_id)
+    usuario_uuid = uuid.UUID(current_user.usuario_id)
+    try:
+        pildora_uuid = uuid.UUID(pildora_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de lección inválido.")
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            # 1. Obtener la píldora y verificar que exista y sea de tipo 'prueba'
+            pildora = await conn.fetchrow(
+                "SELECT tipo, contenido FROM pildoras WHERE id = $1 AND academia_id = $2",
+                pildora_uuid, academia_uuid
+            )
+            if not pildora:
+                raise HTTPException(status_code=404, detail="La lección no existe en esta academia.")
+            if pildora["tipo"] != "prueba":
+                raise HTTPException(status_code=400, detail="Esta lección no es de tipo evaluación.")
+            
+            # 2. Cargar el cuestionario JSON
+            if not pildora["contenido"]:
+                raise HTTPException(status_code=500, detail="Cuestionario no configurado en el servidor.")
+            
+            try:
+                cuestionario = json.loads(pildora["contenido"])
+                preguntas = cuestionario.get("preguntas", [])
+            except Exception:
+                raise HTTPException(status_code=500, detail="Error al decodificar la estructura del cuestionario.")
+                
+            if not preguntas:
+                raise HTTPException(status_code=400, detail="El cuestionario no tiene preguntas formuladas.")
+            
+            # 3. Evaluar respuestas
+            respuestas_usuario = data.respuestas
+            correctas_count = 0
+            feedback = {}
+            
+            for q in preguntas:
+                q_id = q.get("id")
+                ans_correcta = q.get("respuesta_correcta")
+                ans_usuario = respuestas_usuario.get(q_id)
+                
+                # Comparar respuesta
+                is_correct = (ans_usuario is not None and int(ans_usuario) == int(ans_correcta))
+                feedback[q_id] = is_correct
+                if is_correct:
+                    correctas_count += 1
+            
+            total_preguntas = len(preguntas)
+            nota = (correctas_count / total_preguntas) * 100.0 if total_preguntas > 0 else 0.0
+            
+            # Nota mínima aprobatoria: >= 70%
+            aprobado = nota >= 70.0
+            puntos_ganados = 0
+            
+            if aprobado:
+                # Verificar si ya estaba completada para evitar sumar puntos doble
+                prev_completada = await conn.fetchval(
+                    "SELECT completada FROM progreso WHERE academia_id = $1 AND usuario_id = $2 AND pildora_id = $3",
+                    academia_uuid, usuario_uuid, pildora_uuid
+                )
+                
+                if not prev_completada:
+                    # Registrar progreso completado
+                    completada_en = datetime.now()
+                    await conn.execute(
+                        "INSERT INTO progreso (academia_id, usuario_id, pildora_id, completada, completada_en) "
+                        "VALUES ($1, $2, $3, true, $4) "
+                        "ON CONFLICT (academia_id, usuario_id, pildora_id) DO UPDATE SET "
+                        "completada = true, completada_en = EXCLUDED.completada_en",
+                        academia_uuid, usuario_uuid, pildora_uuid, completada_en
+                    )
+                    
+                    # Otorgar 20 puntos por aprobar evaluación
+                    puntos_ganados = 20
+                    await conn.execute(
+                        """
+                        INSERT INTO gamificacion (academia_id, usuario_id, puntos, nivel, ultima_actividad)
+                        VALUES ($1, $2, $3, GREATEST(1, 1 + $3 // 100), NOW())
+                        ON CONFLICT (academia_id, usuario_id) DO UPDATE SET
+                            puntos = GREATEST(0, gamificacion.puntos + $3),
+                            nivel = GREATEST(1, 1 + (gamificacion.puntos + $3) / 100),
+                            ultima_actividad = NOW()
+                        """,
+                        academia_uuid, usuario_uuid, puntos_ganados
+                    )
+            
+            return ResultadoEvaluacion(
+                aprobado=aprobado,
+                nota=round(nota, 2),
+                puntos_ganados=puntos_ganados,
+                feedback=feedback
+            )

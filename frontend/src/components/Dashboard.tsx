@@ -55,10 +55,12 @@ import {
   deletePildora,
   getProgreso,
   toggleProgreso,
+  evaluarPildora,
   type Curso,
   type Bloque,
   type Pildora,
-  type Progreso
+  type Progreso,
+  type ResultadoEvaluacion
 } from '../services/cursos';
 import {
   getGamificacionPerfil,
@@ -129,6 +131,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [progreso, setProgreso] = useState<Progreso[]>([]);
   const [selectedPildora, setSelectedPildora] = useState<Pildora | null>(null);
   const [submittingProgreso, setSubmittingProgreso] = useState(false);
+  const [quizPreguntas, setQuizPreguntas] = useState<{ id: string; pregunta: string; opciones: string[]; respuesta_correcta: number }[]>([]);
+  const [studentAnswers, setStudentAnswers] = useState<Record<string, number>>({});
+  const [evaluationResult, setEvaluationResult] = useState<ResultadoEvaluacion | null>(null);
+  const [evaluatingQuiz, setEvaluatingQuiz] = useState(false);
+
+  useEffect(() => {
+    setStudentAnswers({});
+    setEvaluationResult(null);
+  }, [selectedPildora]);
 
   // Estados de Gamificación
   const [perfilGamif, setPerfilGamif] = useState<GamificacionPerfil | null>(null);
@@ -547,6 +558,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       setPildoraDuracion(pildora.duracion_min || 0);
       setPildoraOrden(pildora.orden);
       setPildoraPublicada(pildora.publicada);
+      
+      if (pildora.tipo === 'prueba' && pildora.contenido) {
+        try {
+          const parsed = JSON.parse(pildora.contenido);
+          setQuizPreguntas(parsed.preguntas || []);
+        } catch (err) {
+          setQuizPreguntas([]);
+        }
+      } else {
+        setQuizPreguntas([]);
+      }
     } else {
       setPildoraTitulo('');
       setPildoraTipo('video');
@@ -554,6 +576,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       setPildoraDuracion(10);
       setPildoraOrden(pildoras.length);
       setPildoraPublicada(false);
+      setQuizPreguntas([]);
     }
     setShowPildoraModal(true);
   };
@@ -566,13 +589,22 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     }
     if (!user.academia_id || !selectedBloque) return;
 
+    let contentToSubmit = pildoraContenido;
+    if (pildoraTipo === 'prueba') {
+      if (quizPreguntas.length === 0) {
+        toast.error('Una evaluación debe tener al menos una pregunta.');
+        return;
+      }
+      contentToSubmit = JSON.stringify({ preguntas: quizPreguntas });
+    }
+
     setSubmittingPildora(true);
     try {
       if (editingPildora) {
         const updated = await updatePildora(token, user.academia_id, editingPildora.id, {
           titulo: pildoraTitulo,
           tipo: pildoraTipo,
-          contenido: pildoraContenido,
+          contenido: contentToSubmit,
           duracion_min: pildoraDuracion,
           orden: pildoraOrden,
           publicada: pildoraPublicada
@@ -583,7 +615,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         const newPildora = await createPildora(token, user.academia_id, selectedBloque.id, {
           titulo: pildoraTitulo,
           tipo: pildoraTipo,
-          contenido: pildoraContenido,
+          contenido: contentToSubmit,
           duracion_min: pildoraDuracion,
           orden: pildoraOrden,
           publicada: pildoraPublicada
@@ -609,6 +641,62 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       toast.success('Lección eliminada.');
     } catch (err: any) {
       toast.error(err.message || 'Error al eliminar la lección.');
+    }
+  };
+
+  const handleEvaluarPrueba = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user.academia_id || !selectedPildora) return;
+
+    let cuestionario: any = null;
+    try {
+      cuestionario = JSON.parse(selectedPildora.contenido || '{}');
+    } catch (err) {
+      toast.error('Error al cargar la prueba.');
+      return;
+    }
+
+    const preguntas = cuestionario.preguntas || [];
+    const unanswered = preguntas.some((q: any) => studentAnswers[q.id] === undefined);
+    
+    if (unanswered) {
+      toast.error('Por favor, responde todas las preguntas del cuestionario.');
+      return;
+    }
+
+    setEvaluatingQuiz(true);
+    try {
+      const res = await evaluarPildora(token, user.academia_id, selectedPildora.id, studentAnswers);
+      setEvaluationResult(res);
+      
+      if (res.aprobado) {
+        toast.success(`¡Excelente! Aprobaste la evaluación con ${res.nota}%.`);
+        
+        // Registrar progreso completado localmente
+        setProgreso(prev => {
+          const exists = prev.some(p => p.pildora_id === selectedPildora.id);
+          const updatedProg = {
+            pildora_id: selectedPildora.id,
+            completada: true,
+            completada_en: new Date().toISOString()
+          };
+          if (exists) {
+            return prev.map(p => p.pildora_id === selectedPildora.id ? updatedProg : p);
+          } else {
+            return [...prev, updatedProg];
+          }
+        });
+
+        // Recargar gamificación y clasificaciones
+        loadGamificacionPerfil();
+        loadLeaderboardLocal();
+      } else {
+        toast.error(`No has alcanzado la nota mínima aprobatoria (Obtuviste ${res.nota}%). Inténtalo de nuevo.`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error al enviar la evaluación.');
+    } finally {
+      setEvaluatingQuiz(false);
     }
   };
 
@@ -1817,8 +1905,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       <div className="flex items-center gap-1.5">
                         {selectedPildora.tipo === 'video' ? (
                           <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase rounded bg-verde/10 text-verde border border-verde/10">🎥 Video</span>
-                        ) : (
+                        ) : selectedPildora.tipo === 'texto' ? (
                           <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase rounded bg-blue-500/10 text-blue-400 border border-blue-500/10">📝 Lectura</span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase rounded bg-purple-500/10 text-purple-400 border border-purple-500/10">📝 Evaluación</span>
                         )}
                         <span className="text-[9px] font-mono text-atenuado">{selectedPildora.duracion_min || 0} minutos de duración</span>
                       </div>
@@ -1826,23 +1916,25 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     </div>
 
                     {/* Botón de marcar completada arriba a la derecha */}
-                    <button
-                      onClick={() => handleToggleProgreso(selectedPildora.id, isPildoraCompletada(selectedPildora.id))}
-                      disabled={submittingProgreso}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer border ${
-                        isPildoraCompletada(selectedPildora.id)
-                          ? 'bg-verde/5 border-verde/30 text-verde hover:bg-verde/10'
-                          : 'btn-primary'
-                      }`}
-                    >
-                      {submittingProgreso ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : isPildoraCompletada(selectedPildora.id) ? (
-                        'Completada ✓'
-                      ) : (
-                        'Completar clase'
-                      )}
-                    </button>
+                    {selectedPildora.tipo !== 'prueba' && (
+                      <button
+                        onClick={() => handleToggleProgreso(selectedPildora.id, isPildoraCompletada(selectedPildora.id))}
+                        disabled={submittingProgreso}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer border ${
+                          isPildoraCompletada(selectedPildora.id)
+                            ? 'bg-verde/5 border-verde/30 text-verde hover:bg-verde/10'
+                            : 'btn-primary'
+                        }`}
+                      >
+                        {submittingProgreso ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : isPildoraCompletada(selectedPildora.id) ? (
+                          'Completada ✓'
+                        ) : (
+                          'Completar clase'
+                        )}
+                      </button>
+                    )}
                   </div>
 
                   {/* Contenedor del Reproductor/Contenido */}
@@ -1864,11 +1956,25 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                           <p className="text-xs text-[#73827C]">No se configuró una URL de video válida para esta clase.</p>
                         </div>
                       )
-                    ) : (
+                    ) : selectedPildora.tipo === 'texto' ? (
                       // Tipo Lectura/Texto
                       <div className="p-5 rounded-2xl border border-[#26302C] bg-[#0b0f0e]/20 text-xs text-[#73827C] leading-relaxed max-h-[500px] overflow-y-auto whitespace-pre-wrap font-sans">
                         {selectedPildora.contenido || 'Esta clase de lectura no contiene texto por el momento.'}
                       </div>
+                    ) : (
+                      // Tipo Evaluación/Prueba
+                      <QuizStudentViewer 
+                        pildora={selectedPildora}
+                        answers={studentAnswers}
+                        onSelectAnswer={(qId, optIdx) => setStudentAnswers(prev => ({ ...prev, [qId]: optIdx }))}
+                        onSubmit={handleEvaluarPrueba}
+                        submitting={evaluatingQuiz}
+                        result={evaluationResult}
+                        onReset={() => {
+                          setStudentAnswers({});
+                          setEvaluationResult(null);
+                        }}
+                      />
                     )}
                   </div>
                 </div>
@@ -2138,12 +2244,17 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   >
                     <option value="video">🎥 Video (URL)</option>
                     <option value="texto">📝 Texto (Markdown)</option>
+                    <option value="prueba">📝 Cuestionario (Prueba)</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5 text-[#73827C]">
-                    {pildoraTipo === 'video' ? 'URL del Video (YouTube/Vimeo)' : 'Contenido Escrito (Markdown)'}
+                    {pildoraTipo === 'video' 
+                      ? 'URL del Video (YouTube/Vimeo)' 
+                      : pildoraTipo === 'texto' 
+                      ? 'Contenido Escrito (Markdown)' 
+                      : 'Preguntas del Cuestionario'}
                   </label>
                   {pildoraTipo === 'video' ? (
                     <input
@@ -2153,7 +2264,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       onChange={(e) => setPildoraContenido(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200"
                     />
-                  ) : (
+                  ) : pildoraTipo === 'texto' ? (
                     <textarea
                       placeholder="Escribe el contenido aquí (soporta Markdown)..."
                       value={pildoraContenido}
@@ -2161,6 +2272,124 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       rows={4}
                       className="w-full px-4 py-2.5 rounded-xl border border-[#26302C] outline-none text-sm bg-[#060908]/50 text-[#E6ECE9] input-glow transition-all duration-200 font-mono"
                     />
+                  ) : (
+                    /* Creador de cuestionario interactivo */
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                      {quizPreguntas.map((q, qIndex) => (
+                        <div key={q.id} className="p-3 rounded-xl border border-[#26302C] bg-[#0d1210]/50 space-y-3 relative group">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuizPreguntas(prev => prev.filter(item => item.id !== q.id));
+                            }}
+                            className="absolute top-2 right-2 text-xs text-red-400 hover:text-red-300 font-bold cursor-pointer"
+                          >
+                            Eliminar
+                          </button>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-bold text-verde uppercase">Pregunta {qIndex + 1}</span>
+                            <input
+                              type="text"
+                              required
+                              placeholder="Escribe la pregunta..."
+                              value={q.pregunta}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setQuizPreguntas(prev => prev.map(item => item.id === q.id ? { ...item, pregunta: val } : item));
+                              }}
+                              className="w-full px-3 py-1.5 rounded-lg border border-[#26302C] outline-none text-xs bg-[#060908]/30 text-[#E6ECE9] focus:border-verde"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-[9px] font-bold text-[#73827C] uppercase">Opciones (Marca la correcta)</span>
+                            {q.opciones.map((opt, optIndex) => (
+                              <div key={optIndex} className="flex gap-2 items-center">
+                                <input
+                                  type="radio"
+                                  name={`correcta_${q.id}`}
+                                  checked={q.respuesta_correcta === optIndex}
+                                  onChange={() => {
+                                    setQuizPreguntas(prev => prev.map(item => item.id === q.id ? { ...item, respuesta_correcta: optIndex } : item));
+                                  }}
+                                  className="w-3.5 h-3.5 text-verde bg-fondo border-linea focus:ring-0 cursor-pointer"
+                                />
+                                <input
+                                  type="text"
+                                  required
+                                  placeholder={`Opción ${optIndex + 1}`}
+                                  value={opt}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setQuizPreguntas(prev => prev.map(item => {
+                                      if (item.id === q.id) {
+                                        const newOpts = [...item.opciones];
+                                        newOpts[optIndex] = val;
+                                        return { ...item, opciones: newOpts };
+                                      }
+                                      return item;
+                                    }));
+                                  }}
+                                  className="flex-grow px-3 py-1 rounded-lg border border-[#26302C] outline-none text-xs bg-[#060908]/20 text-[#E6ECE9] focus:border-verde"
+                                />
+                                {q.opciones.length > 2 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setQuizPreguntas(prev => prev.map(item => {
+                                        if (item.id === q.id) {
+                                          const newOpts = item.opciones.filter((_, idx) => idx !== optIndex);
+                                          const newCorrect = item.respuesta_correcta >= newOpts.length ? 0 : item.respuesta_correcta;
+                                          return { ...item, opciones: newOpts, respuesta_correcta: newCorrect };
+                                        }
+                                        return item;
+                                      }));
+                                    }}
+                                    className="text-xs text-red-500 hover:text-red-400 font-bold"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            
+                            {q.opciones.length < 5 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setQuizPreguntas(prev => prev.map(item => {
+                                    if (item.id === q.id) {
+                                      return { ...item, opciones: [...item.opciones, ''] };
+                                    }
+                                    return item;
+                                  }));
+                                }}
+                                className="text-[10px] text-verde font-bold hover:underline cursor-pointer"
+                              >
+                                + Añadir Opción
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQ = {
+                            id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                            pregunta: '',
+                            opciones: ['', ''],
+                            respuesta_correcta: 0
+                          };
+                          setQuizPreguntas(prev => [...prev, newQ]);
+                        }}
+                        className="w-full py-2 border border-dashed border-[#26302C] rounded-xl text-xs font-bold text-verde bg-verde/5 hover:bg-verde/10 transition-colors cursor-pointer"
+                      >
+                        + Nueva Pregunta
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -2462,3 +2691,164 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     </div>
   );
 }
+
+interface QuizStudentViewerProps {
+  pildora: Pildora;
+  answers: Record<string, number>;
+  onSelectAnswer: (qId: string, optIdx: number) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  submitting: boolean;
+  result: ResultadoEvaluacion | null;
+  onReset: () => void;
+}
+
+function QuizStudentViewer({
+  pildora,
+  answers,
+  onSelectAnswer,
+  onSubmit,
+  submitting,
+  result,
+  onReset
+}: QuizStudentViewerProps) {
+  let cuestionario: any = null;
+  try {
+    cuestionario = JSON.parse(pildora.contenido || '{}');
+  } catch (err) {
+    return (
+      <div className="p-6 text-center border border-dashed border-red-500/25 rounded-2xl bg-red-500/5 text-xs text-red-400 font-medium">
+        Error al decodificar el cuestionario en el cliente.
+      </div>
+    );
+  }
+
+  const preguntas = cuestionario.preguntas || [];
+
+  if (preguntas.length === 0) {
+    return (
+      <div className="p-6 text-center border border-dashed border-[#26302C] rounded-2xl bg-[#0b0f0e]/10 text-xs text-[#73827C] italic">
+        Esta evaluación no tiene preguntas cargadas.
+      </div>
+    );
+  }
+
+  if (result) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="p-6 rounded-2xl border border-[#26302C] bg-[#0d1210]/35 space-y-6 text-center relative overflow-hidden"
+      >
+        {result.aprobado && (
+          <div className="absolute inset-0 pointer-events-none bg-verde/5 flex items-center justify-center">
+            {/* Orbe decorativo */}
+            <div className="w-48 h-48 rounded-full blur-[80px] bg-verde/20 animate-pulse" />
+          </div>
+        )}
+        
+        <div className="relative z-10 space-y-4 animate-float-slow">
+          <div className="inline-flex p-4 rounded-full bg-[#060908] border border-[#26302C]">
+            {result.aprobado ? (
+              <Sparkles className="w-8 h-8 text-verde" />
+            ) : (
+              <Lock className="w-8 h-8 text-red-400" />
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <h3 className="text-base font-black text-texto">
+              {result.aprobado ? '¡Evaluación Aprobada!' : 'Evaluación Reprobada'}
+            </h3>
+            <p className="text-xs text-atenuado max-w-xs mx-auto">
+              {result.aprobado 
+                ? `¡Felicitaciones! Has completado con éxito esta lección interactiva.` 
+                : `No has alcanzado la nota mínima requerida (70%). Revisa el temario e inténtalo de nuevo.`}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto py-2">
+            <div className="p-3.5 rounded-xl border border-[#26302C] bg-[#060908]/60">
+              <span className="block text-[9px] font-bold text-atenuado uppercase">Calificación</span>
+              <span className={`text-base font-black ${result.aprobado ? 'text-verde' : 'text-red-400'}`}>
+                {result.nota}%
+              </span>
+            </div>
+            <div className="p-3.5 rounded-xl border border-[#26302C] bg-[#060908]/60">
+              <span className="block text-[9px] font-bold text-atenuado uppercase">Puntos</span>
+              <span className="text-base font-black text-[#E6ECE9]">
+                +{result.puntos_ganados} PTS
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            {!result.aprobado && (
+              <button
+                type="button"
+                onClick={onReset}
+                className="w-full py-2.5 rounded-xl text-xs font-bold btn-primary cursor-pointer max-w-xs mx-auto block"
+              >
+                Reintentar Evaluación
+              </button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="space-y-4 max-h-[460px] overflow-y-auto pr-1">
+        {preguntas.map((q: any, qIndex: number) => (
+          <div key={q.id} className="p-4 rounded-xl border border-[#26302C] bg-[#0d1210]/20 space-y-3">
+            <div className="flex gap-2 items-start">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#26302C] text-[#73827C]">
+                Q{qIndex + 1}
+              </span>
+              <h4 className="text-xs font-bold text-texto leading-relaxed pt-0.5">
+                {q.pregunta}
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5 pl-6 pt-1">
+              {q.opciones.map((opt: string, optIndex: number) => {
+                const isSelected = answers[q.id] === optIndex;
+                return (
+                  <div
+                    key={optIndex}
+                    onClick={() => onSelectAnswer(q.id, optIndex)}
+                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex items-center gap-3 ${
+                      isSelected 
+                        ? 'bg-verde/5 border-verde/30 text-verde' 
+                        : 'bg-fondo/45 border-linea/65 hover:bg-superficie/40 hover:text-texto text-atenuado'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                      isSelected ? 'border-verde bg-verde/15' : 'border-atenuado/40'
+                    }`}>
+                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-verde" />}
+                    </div>
+                    <span className="font-semibold">{opt}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="pt-3 border-t border-linea flex justify-end">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="px-6 py-3 rounded-xl text-xs font-black btn-primary flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          Finalizar y Enviar
+        </button>
+      </div>
+    </form>
+  );
+}
+

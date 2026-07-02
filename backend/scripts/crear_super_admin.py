@@ -124,6 +124,19 @@ async def main():
         print(f"   email:    {student_row['email']} (contraseña: {student_pass})")
         print(f"   rol:      {student_row['rol']}")
 
+        # 5. Crear / actualizar membresía para el estudiante de prueba
+        await conn.execute(
+            """
+            INSERT INTO membresias (academia_id, usuario_id, plan, activa, comprada_en, vence_en)
+            VALUES ($1, $2, 'basico', true, NOW(), NULL)
+            ON CONFLICT (academia_id, usuario_id) DO UPDATE SET
+                activa = true,
+                vence_en = NULL
+            """,
+            academia_row['id'], student_row['id']
+        )
+        print("Membresía del estudiante demo activada.")
+
     finally:
         await conn.close()
 

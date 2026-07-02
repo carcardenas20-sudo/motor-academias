@@ -1,12 +1,13 @@
 import uuid
 import bcrypt
+from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, EmailStr
 from typing import List
 from datetime import datetime
 
 from app.database import get_pool
-from app.dependencies import get_current_super_admin, require_admin_academia
+from app.dependencies import get_current_super_admin, require_admin_academia, verify_academy_access
 from app.auth import TokenData
 
 router = APIRouter()
@@ -102,6 +103,43 @@ async def create_academia(
             "RETURNING id, slug, nombre, descripcion, logo_url, color_acento, activa, creada_en",
             data.slug, data.nombre, data.descripcion, data.logo_url, data.color_acento
         )
+    return AcademiaResponse(
+        id=str(row["id"]),
+        slug=row["slug"],
+        nombre=row["nombre"],
+        descripcion=row["descripcion"],
+        logo_url=row["logo_url"],
+        color_acento=row["color_acento"],
+        activa=row["activa"],
+        creada_en=row["creada_en"]
+    )
+
+
+@router.get("/{academia_id}", response_model=AcademiaResponse)
+async def get_academia(
+    academia_id: str,
+    current_user: TokenData = Depends(verify_academy_access)
+):
+    try:
+        academia_uuid = uuid.UUID(academia_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ID de academia inválido."
+        )
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, slug, nombre, descripcion, logo_url, color_acento, activa, creada_en "
+            "FROM academias WHERE id = $1",
+            academia_uuid
+        )
+        if not row:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="La academia especificada no existe."
+            )
     return AcademiaResponse(
         id=str(row["id"]),
         slug=row["slug"],
@@ -332,9 +370,8 @@ async def hotmart_webhook(
                 )
                 
                 # Registrar la venta en la tabla ventas
-                from decimal import Decimal
                 await conn.execute(
-                    "INSERT INTO ventas (academia_id, usuario_id, monto, moneda, referencia) "
+                    "INSERT INTO ventas (academia_id, usuario_id, monto, moneda, hotmart_id) "
                     "VALUES ($1, $2, $3, 'USD', $4)",
                     academia_uuid, usuario_uuid, Decimal("49.90"), "HOTMART-SALE-" + str(uuid.uuid4())[:8]
                 )

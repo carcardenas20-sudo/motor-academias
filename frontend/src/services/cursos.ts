@@ -321,3 +321,34 @@ export async function toggleProgreso(
 
   return response.json();
 }
+
+export interface ResultadoEvaluacion {
+  aprobado: boolean;
+  nota: number;
+  puntos_ganados: number;
+  feedback: Record<string, boolean>;
+}
+
+export async function evaluarPildora(
+  token: string,
+  academiaId: string,
+  pildoraId: string,
+  respuestas: Record<string, number>
+): Promise<ResultadoEvaluacion> {
+  const response = await fetch(`${API_URL}/academias/${academiaId}/pildoras/${pildoraId}/evaluar`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ respuestas }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Error al procesar la evaluación.');
+  }
+
+  return response.json();
+}
+
